@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Granny — Bay Area Weekly Deals</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <h1>Granny</h1>
+      <p class="subtitle">Bay Area supermarket deals — updated weekly</p>
+    </div>
+  </header>
+
+  <main>
+  <div class="layout">
+
+    <!-- ── Left: deal browser ── -->
+    <div class="deals-col">
+
+      {% if sample %}
+      <details id="sample-inspector" style="margin:0 0 20px;background:#1d1d1f;border-radius:12px;padding:16px 20px;">
+        <summary style="color:#fff;font-size:13px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+          <span>🔬 Data Inspector — all fields for one item</span>
+          <span style="color:#6e6e73;font-size:11px;">click to expand</span>
+        </summary>
+        <div style="margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
+          {% set fields = [
+            ("store_name",          sample.store_name),
+            ("product_name",        sample.product_name),
+            ("category",            sample.category),
+            ("quality_tags",        sample.quality_tags | join(", ") if sample.quality_tags else "—"),
+            ("original_price",      "$" ~ "%.2f"|format(sample.original_price) if sample.original_price else "—"),
+            ("sale_price",          "$" ~ "%.2f"|format(sample.sale_price) if sample.sale_price else "—"),
+            ("unit",                sample.unit or "—"),
+            ("discount_amount",     "$" ~ "%.2f"|format(sample.discount_amount) if sample.discount_amount else "—"),
+            ("discount_percentage", "%.1f"|format(sample.discount_percentage) ~ "%" if sample.discount_percentage else "—"),
+            ("normalized_price",    "$" ~ "%.2f"|format(sample.normalized_price) if sample.normalized_price else "—"),
+            ("normalized_unit",     sample.normalized_unit or "—"),
+            ("price_label",         sample.price_label or "—"),
+            ("price_source",        sample.price_source or "—"),
+            ("valid_from",          sample.valid_from or "—"),
+            ("valid_to",            sample.valid_to or "—"),
+            ("flyer_image_url",     sample.flyer_image_url or "—"),
+            ("scraped_at",          sample.scraped_at or "—"),
+          ] %}
+          {% for key, val in fields %}
+          <div style="background:#2c2c2e;border-radius:8px;padding:10px 12px;">
+            <div style="font-size:10px;font-weight:700;color:#6e6e73;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">{{ key }}</div>
+            <div style="font-size:13px;color:{% if val == '—' %}#48484a{% else %}#f5f5f7{% endif %};word-break:break-all;">{{ val }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
+
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search deals…" autocomplete="off" />
+      </div>
+
+      <section class="filters">
+        <div class="filter-group">
+          <span class="filter-label">Store</span>
+          <div class="filter-chips" id="store-filters">
+            <button class="chip active" data-value="">All</button>
+            {% for store in stores %}
+            <button class="chip" data-value="{{ store }}">{{ store }}</button>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <span class="filter-label">Category</span>
+          <div class="filter-chips" id="category-filters">
+            <button class="chip active" data-value="">All</button>
+            {% for cat in categories %}
+            <button class="chip" data-value="{{ cat }}">{{ cat | capitalize }}</button>
+            {% endfor %}
+          </div>
+        </div>
+      </section>
+
+      <div class="stats-bar">
+        <span id="deal-count">Loading...</span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="deals-table" id="deals-table">
+          <thead>
+            <tr>
+              <th>Store</th>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Package</th>
+              <th>Price</th>
+              <th>Orig. price</th>
+              <th>Deal</th>
+              <th>Conditions</th>
+              <th>Unit price</th>
+              <th>Valid</th>
+            </tr>
+          </thead>
+          <tbody id="deals-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="empty-state" style="display:none;">
+          No deals found for this filter.
+        </div>
+      </div>
+
+    </div><!-- .deals-col -->
+
+    <!-- ── Right: chat agent ── -->
+    <div class="chat-col">
+
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div class="chat-title">Shopping Assistant</div>
+          <div class="chat-subtitle-sm">Tell me what you need — I'll find the best deals</div>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-bubble assistant">Hi! Tell me what you'd like to buy and I'll build your shopping list with the best deals this week.</div>
+        </div>
+        <div class="chat-input-row">
+          <input type="text" id="chat-input" placeholder="e.g. chicken, eggs, and milk…" autocomplete="off" />
+          <button id="chat-send">Send</button>
+        </div>
+      </div>
+
+      <div class="shopping-list-panel" id="shopping-list-panel" style="display:none">
+        <div class="list-header">
+          <span class="list-title">Shopping List</span>
+          <button class="list-clear" id="list-clear">Clear</button>
+        </div>
+        <div id="shopping-list-content"></div>
+      </div>
+
+    </div><!-- .chat-col -->
+
+  </div><!-- .layout -->
+  </main>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>
