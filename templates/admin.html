@@ -298,7 +298,9 @@
         {% for item in null_items %}
         <div class="null-item">
           <span class="ni-name">{{ item.product_name }}</span>
-          <span class="ni-price">${{ "%.2f"|format(item.sale_price) }} / {{ item.unit or "?" }}</span>
+          <span class="ni-price">
+            {% if item.price_flyer is not none %}${{ "%.2f"|format(item.price_flyer) }}{% else %}—{% endif %} / {{ item.unit_flyer or "?" }}
+          </span>
         </div>
         {% endfor %}
       </div>
@@ -399,15 +401,15 @@
                 {% set p = r.extra.parsed %}
                 <div class="field-row">
                   <div class="field">
-                    <span class="field-key">sale_price</span>
-                    <span class="field-val {% if p.sale_price and r.flipp_price and (p.sale_price - r.flipp_price)|abs > 0.02 %}wrong{% endif %}">
-                      {% if p.sale_price is not none %}${{ "%.2f"|format(p.sale_price) }}{% else %}<span class="null">—</span>{% endif %}
+                    <span class="field-key">price_flyer</span>
+                    <span class="field-val {% if p.price_flyer and r.flipp_price and (p.price_flyer - r.flipp_price)|abs > 0.02 %}wrong{% endif %}">
+                      {% if p.price_flyer is not none %}${{ "%.2f"|format(p.price_flyer) }}{% else %}<span class="null">—</span>{% endif %}
                     </span>
                   </div>
                   <div class="field-divider"></div>
                   <div class="field">
-                    <span class="field-key">unit</span>
-                    <span class="field-val small">{{ p.unit or "—" }}</span>
+                    <span class="field-key">unit_flyer</span>
+                    <span class="field-val small">{{ p.unit_flyer or "—" }}</span>
                   </div>
                   <div class="field-divider"></div>
                   <div class="field">
@@ -436,15 +438,15 @@
                 {% set db = r.extra.db %}
                 <div class="field-row">
                   <div class="field">
-                    <span class="field-key">sale_price</span>
-                    <span class="field-val {% if db.sale_price and r.flipp_price and (db.sale_price - r.flipp_price)|abs > 0.02 %}wrong{% endif %}">
-                      {% if db.sale_price is not none %}${{ "%.2f"|format(db.sale_price) }}{% else %}<span class="null">—</span>{% endif %}
+                    <span class="field-key">price_flyer</span>
+                    <span class="field-val {% if db.price_flyer and r.flipp_price and (db.price_flyer - r.flipp_price)|abs > 0.02 %}wrong{% endif %}">
+                      {% if db.price_flyer is not none %}${{ "%.2f"|format(db.price_flyer) }}{% else %}<span class="null">—</span>{% endif %}
                     </span>
                   </div>
                   <div class="field-divider"></div>
                   <div class="field">
-                    <span class="field-key">unit</span>
-                    <span class="field-val small">{{ db.unit or "—" }}</span>
+                    <span class="field-key">unit_flyer</span>
+                    <span class="field-val small">{{ db.unit_flyer or "—" }}</span>
                   </div>
                   <div class="field-divider"></div>
                   <div class="field">
@@ -455,14 +457,14 @@
                   </div>
                   <div class="field-divider"></div>
                   <div class="field">
-                    <span class="field-key">normalized_unit</span>
-                    <span class="field-val small">{{ db.normalized_unit or "—" }}</span>
+                    <span class="field-key">unit_norm</span>
+                    <span class="field-val small">{{ db.unit_norm or "—" }}</span>
                   </div>
                 </div>
-                {% if db.unit and db.normalized_unit and db.unit != db.normalized_unit %}
-                <div class="norm-note">Unit conversion: {{ db.unit }} → {{ db.normalized_unit }}</div>
-                {% elif db.sale_price == db.normalized_price %}
-                <div class="norm-note">No conversion — normalized_price = sale_price</div>
+                {% if db.unit_flyer and db.unit_norm and db.unit_flyer != db.unit_norm %}
+                <div class="norm-note">Unit conversion: {{ db.unit_flyer }} → {{ db.unit_norm }}</div>
+                {% elif db.price_flyer == db.normalized_price %}
+                <div class="norm-note">No conversion — normalized_price = price_flyer</div>
                 {% endif %}
                 {% else %}
                 <div class="field-row"><span style="font-size:13px;color:#a1a1a6">Not found in DB</span></div>

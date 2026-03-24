@@ -19,7 +19,6 @@ python3 import_to_database.py       # load into SQLite
 # Other stores (scripts exist, same pattern):
 # download/ocr/parse: hmart, 99ranch, cardenas
 
-python3 validate_ocr.py             # accuracy report vs Flipp ground truth
 python3 app.py                      # http://localhost:5000 (deals) + /admin (validation)
 ```
 
@@ -37,7 +36,6 @@ python3 app.py                      # http://localhost:5000 (deals) + /admin (va
 | `parse_safeway_deals.py` | `_raw.txt` → `_deals.json`. Normalizes price labels, computes discounts. |
 | `import_to_database.py` | `_deals.json` → `database.db`. Normalizes units (oz→per_lb, etc). |
 | `setup_database.py` | Creates schema. **Bug:** missing `price_label` in CREATE TABLE — run ALTER after. |
-| `validate_ocr.py` | Accuracy report: OCR output vs Flipp ground truth. |
 | `app.py` | Flask server. `/` deal browser, `/admin` validation dashboard. |
 | `static/script.js` | Vanilla JS. Chip filters → `/api/deals` → render cards. |
 | `0222.md` | Detailed project memory (decisions, architecture rationale). |
@@ -71,7 +69,6 @@ Unique constraint: `(product_name, store_name, valid_from)`. Units normalize to:
 | `price_label` missing from `setup_database.py` CREATE TABLE | Add column; workaround: `ALTER TABLE deals ADD COLUMN price_label TEXT` |
 | Flipp token + postal code hardcoded in `download_safeway_flyer.py` | Move to `.env` |
 | OCR category field not normalized (model invents values) | Add fixed category list to `OCR_PROMPT` |
-| Flipp validator misses "5 lbs for $5" format | Fix regex in `validate_ocr.py` `parse_flipp_price()` |
 | No auth on `/admin` | Fine for local; add before any deployment |
 
 ---
@@ -79,7 +76,6 @@ Unique constraint: `(product_name, store_name, valid_from)`. Units normalize to:
 ## What's Left (Infra → V0)
 
 - [ ] Fix `setup_database.py` schema (add `price_label`)
-- [ ] Fix Flipp validator regex
 - [ ] Add fixed category list to OCR prompt
 - [ ] Move hardcoded Flipp token to `.env`
 - [ ] More stores: Costco, Whole Foods (different flyer formats)

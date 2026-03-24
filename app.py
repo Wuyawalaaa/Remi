@@ -15,6 +15,27 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "database.db")
 ALL_STORES = ["Safeway", "H Mart", "99 Ranch", "Cardenas"]
 
 
+def _package_label(deal):
+    package_amount = deal.get("package_amount")
+    per_unit_volume = deal.get("per_unit_volume")
+
+    if package_amount and per_unit_volume:
+        return f"{package_amount} x {per_unit_volume}"
+    if per_unit_volume:
+        return str(per_unit_volume)
+    if package_amount and package_amount != 1:
+        return f"{package_amount} ct"
+    return None
+
+
+def _prepare_deal_record(deal):
+    """Fill small display-friendly helpers without reintroducing legacy schema names."""
+    if not deal.get("product_name"):
+        deal["product_name"] = deal.get("product") or deal.get("brand") or "Unknown item"
+    deal["package_label"] = _package_label(deal)
+    return deal
+
+
 def get_deals(store=None, category=None):
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
@@ -24,10 +45,12 @@ def get_deals(store=None, category=None):
 
     query = """
         SELECT id, store_name, product_name, quality_tags,
-               original_price, sale_price, unit,
+               original_price, price_flyer, unit_flyer,
+               package_amount, per_unit_volume,
                discount_amount, discount_percentage,
                valid_from, valid_to, category,
-               normalized_price, normalized_unit, deal_type, package_size, deal_conditions
+               normalized_price, unit_norm, deal_type, deal_conditions,
+               promotion_group_id, price_source, flyer_image_url, scraped_at
         FROM deals
         WHERE valid_from <= ? AND valid_to >= ?
     """
@@ -41,14 +64,14 @@ def get_deals(store=None, category=None):
         query += " AND category = ?"
         params.append(category)
 
-    query += " ORDER BY category, normalized_price ASC"
+    query += " ORDER BY category, normalized_price IS NULL, normalized_price ASC"
 
     rows = cur.execute(query, params).fetchall()
     con.close()
 
     deals = []
     for row in rows:
-        d = dict(row)
+        d = _prepare_deal_record(dict(row))
         try:
             d["quality_tags"] = json.loads(d["quality_tags"] or "[]")
         except Exception:
@@ -160,6 +183,7 @@ def index():
     con.close()
     sample = dict(row) if row else None
     if sample:
+        sample = _prepare_deal_record(sample)
         try:
             sample["quality_tags"] = json.loads(sample["quality_tags"] or "[]")
         except Exception:
@@ -223,7 +247,7 @@ def admin():
         ocr_data = json.load(f)
 
     flipp_items = flipp_data["items"]
-    ocr_deals   = ocr_data["deals"]
+    ocr_deals   = [_prepare_deal_record(dict(deal)) for deal in ocr_data["deals"]]
 
     # ── helpers ──────────────────────────────────────────────────────────────
 
@@ -301,7 +325,7 @@ def admin():
             bogo_skip.append({"name": deal["product_name"], "label": item["raw_label"]})
             continue
 
-        ocr_price = deal.get("sale_price")
+        ocr_price = deal.get("price_flyer")
         if ocr_price and abs(ocr_price - flipp_price) < 0.02:
             correct.append({"name": deal["product_name"], "price": ocr_price, "score": round(score,2)})
         else:
@@ -344,16 +368,16 @@ def admin():
         # Stage 2 – LLM parsed deal (from _deals.json)
         parsed = deal_by_name.get(name, {})
         first["extra"]["parsed"] = {
-            "sale_price":     parsed.get("sale_price"),
+            "price_flyer":    parsed.get("price_flyer"),
             "original_price": parsed.get("original_price"),
-            "unit":           parsed.get("unit"),
+            "unit_flyer":     parsed.get("unit_flyer"),
             "category":       parsed.get("category"),
             "quality_tags":   parsed.get("quality_tags", []),
         }
 
         # Stage 3 – Database record (after normalization)
         row = cur.execute(
-            "SELECT sale_price, unit, normalized_price, normalized_unit "
+            "SELECT price_flyer, unit_flyer, normalized_price, unit_norm "
             "FROM deals WHERE product_name = ?",
             (name,)
         ).fetchone()
@@ -421,7 +445,7 @@ def admin():
     cat_grid = [(cat, cat_counts.get(cat, 0)) for cat in ALL_CATS]
 
     null_items_rows = cur_dq.execute("""
-        SELECT product_name, sale_price, unit FROM deals
+        SELECT product_name, price_flyer, unit_flyer FROM deals
         WHERE category IS NULL AND valid_from <= ? AND valid_to >= ?
         ORDER BY product_name
     """, (today, today)).fetchall()
@@ -435,7 +459,7 @@ def admin():
     # BOGO stats from deals JSON (pre-import state)
     bogo_normalized = cur_dq.execute("""
         SELECT COUNT(*) FROM deals
-        WHERE discount_percentage = 50.0 AND unit = 'ea'
+        WHERE discount_percentage = 50.0 AND unit_flyer = 'ea'
         AND original_price IS NOT NULL
         AND valid_from <= ? AND valid_to >= ?
     """, (today, today)).fetchone()[0]
@@ -537,7 +561,7 @@ MATCHING ITEMS TO DEALS:
 - In the note field, include savings info when available, e.g. 'save 30% · was $4.99'. If no deal matched, write 'no deal found this week'.
 
 SAVINGS:
-- Track total savings: sum of (original_price - sale_price) or (discount_percentage x original_price) per item if applicable.
+- Track total savings: sum of (original_price - price_flyer) or (discount_percentage x original_price) per item if applicable.
 - Show total savings at the bottom of the list.
 - Only include items where the dollar saving is calculable. Do not estimate.
 - In save_amount, put the dollar amount saved per unit as a number (e.g. 1.50). Set to 0 if no deal.
@@ -559,12 +583,12 @@ def _deals_context():
         deal_type = d.get("deal_type")
         if deal_type:
             price = deal_type
-        elif d.get("sale_price") not in (None, 0):
-            price = f"${d['sale_price']:.2f}/{d['unit'] or 'ea'}"
+        elif d.get("price_flyer") not in (None, 0):
+            price = f"${d['price_flyer']:.2f}/{d['unit_flyer'] or 'ea'}"
         else:
             price = "deal — see store"
         orig = f" (reg ${d['original_price']:.2f})" if d.get("original_price") else ""
-        pkg  = f", {d['package_size']}" if d.get("package_size") else ""
+        pkg  = f", {d['package_label']}" if d.get("package_label") else ""
         out.append(f"{d['store_name']} | {d['product_name']}{pkg} | {price}{orig}")
     return "\n".join(out)
 

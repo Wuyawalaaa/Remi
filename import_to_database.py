@@ -34,25 +34,41 @@ def find_latest_deals_json(flyers_dir=None):
 LIQUID_CATEGORIES = {"beverages", "alcohol"}
 
 _VOL_UNIT_RE = re.compile(
-    r'^([\d.]+)\s*(ml|l|liter|litre|fl\.?oz|floz|oz|gal|qt|quart|pt|pint|lb|lbs|g|kg)s?$',
+    r'([\d.]+)\s*(ml|l|liter|litre|fl\.?\s*oz|floz|gal|qt|quart|pt|pint|lb|lbs|g|kg|oz|doz|ea|each|ct|count|pk|pack|box)\b',
+    re.IGNORECASE
+)
+
+LIQUID_UNITS = {"ml", "l", "liter", "litre", "floz", "fl oz", "gal", "qt", "quart", "pt", "pint"}
+WEIGHT_UNITS = {"lb", "lbs", "g", "kg", "oz"}
+COUNT_UNITS = {"doz", "ea", "each", "ct", "count", "pk", "pack", "box"}
+PACK_RE = re.compile(
+    r'(\d+(?:\.\d+)?)\s*[- ]?(pack|pk|ct|count|box)\b[^0-9]{0,8}(\d+(?:\.\d+)?)\s*[- ]?\s*(ml|l|liter|litre|fl\.?\s*oz|floz|gal|qt|quart|pt|pint|lb|lbs|g|kg|oz)\.?\b',
     re.IGNORECASE
 )
 
 def parse_per_unit_volume(s):
-    """Parse '750ml' → (750.0, 'ml'), '16oz' → (16.0, 'oz'), '1lb' → (1.0, 'lb'). Returns (None, None) on failure."""
+    """Extract the first comparable quantity from package text."""
     if not s:
         return None, None
-    m = _VOL_UNIT_RE.match(s.strip().replace(" ", ""))
+    cleaned = str(s).strip().lower().replace("-", " ")
+    m = _VOL_UNIT_RE.search(cleaned)
     if not m:
         return None, None
-    return float(m.group(1)), m.group(2).lower().rstrip("s")
+    unit = re.sub(r"\s+", " ", m.group(2).lower())
+    if unit == "fl. oz":
+        unit = "fl oz"
+    if unit == "lbs":
+        unit = "lb"
+    if unit in {"each", "count"}:
+        unit = "ea"
+    return float(m.group(1)), unit
 
 
 def to_ml(amount, unit):
     """Convert amount in given unit to ml. Returns None if unit unrecognized."""
     conversions = {
         "ml": 1, "l": 1000, "liter": 1000, "litre": 1000,
-        "floz": 29.5735, "fl.oz": 29.5735, "oz": 29.5735,
+        "floz": 29.5735, "fl oz": 29.5735, "oz": 29.5735,
         "gal": 3785.41, "qt": 946.353, "quart": 946.353,
         "pt": 473.176, "pint": 473.176,
     }
@@ -62,83 +78,158 @@ def to_ml(amount, unit):
 def to_lb(amount, unit):
     """Convert amount in given unit to lb. Returns None if unit unrecognized."""
     conversions = {
-        "lb": 1, "lbs": 1, "oz": 1/16, "g": 1/453.592, "kg": 2.20462,
+        "lb": 1, "oz": 1/16, "g": 1/453.592, "kg": 2.20462,
     }
     return round(amount * conversions[unit], 4) if unit in conversions else None
 
 
-def get_unit_norm(category):
-    """Derive target normalization unit from category."""
-    cat = (category or "").lower().strip()
-    if cat in LIQUID_CATEGORIES:
-        return "per_ml"
-    if cat in {"produce", "meat", "seafood", "dairy", "bakery", "deli",
-               "frozen", "pantry", "condiments", "prepared foods"}:
-        return "per_lb"
-    return "per_ea"
+def _normalize_unit_label(unit):
+    unit = (unit or "").strip().lower().replace("_", " ")
+    unit = re.sub(r"\s+", " ", unit)
+    aliases = {
+        "fl. oz": "fl oz",
+        "fluid ounce": "fl oz",
+        "fluid ounces": "fl oz",
+        "liter": "l",
+        "litre": "l",
+        "lbs": "lb",
+        "each": "ea",
+        "count": "ea",
+    }
+    return aliases.get(unit, unit)
 
 
-def normalize_price(price_flyer, unit_flyer, package_amount, per_unit_volume, category):
+def infer_unit_norm(unit_flyer, per_unit_volume, category):
+    """Choose the final comparison unit: ml, lb, or ea."""
+    unit_flyer = _normalize_unit_label(unit_flyer)
+    vol_amount, vol_unit = parse_per_unit_volume(per_unit_volume)
+
+    if unit_flyer in LIQUID_UNITS:
+        return "ml"
+    if vol_unit in LIQUID_UNITS:
+        return "ml"
+    if (category or "").lower().strip() in LIQUID_CATEGORIES and (
+        unit_flyer in {"ea", "pk", "pack", "box", "ct", ""} or vol_unit in LIQUID_UNITS
+    ):
+        return "ml"
+
+    if unit_flyer in WEIGHT_UNITS:
+        return "lb"
+    if vol_unit in WEIGHT_UNITS:
+        return "lb"
+
+    return "ea"
+
+
+def _safe_quantity(value):
+    try:
+        qty = float(value)
+    except (TypeError, ValueError):
+        return 1.0
+    return qty if qty > 0 else 1.0
+
+
+def extract_total_measurement(unit_flyer, package_amount, per_unit_volume):
     """
-    normalized_price = price_flyer / total_content_in_unit_norm
-    total_content    = package_amount × per_unit_volume (converted to unit_norm)
+    Return (total_amount, total_unit) for the item content when possible.
+    Examples:
+      6 x 12 oz -> (72, "oz")
+      750 ml    -> (750, "ml")
+      1 lb      -> (1, "lb")
+    """
+    qty = _safe_quantity(package_amount)
+    text = (per_unit_volume or "").replace("\u00a0", " ").replace("-", " ").lower()
 
-    If unit_flyer is already a weight/volume, use it directly (per_unit_volume ignored).
+    pack_matches = list(PACK_RE.finditer(text))
+    if len(pack_matches) == 1:
+        pack_qty = float(pack_matches[0].group(1))
+        size_amount = float(pack_matches[0].group(3))
+        size_unit = _normalize_unit_label(pack_matches[0].group(4))
+        return pack_qty * size_amount * qty, size_unit
+
+    vol_amount, vol_unit = parse_per_unit_volume(per_unit_volume)
+    if vol_amount is not None and vol_unit:
+        return vol_amount * qty, vol_unit
+
+    unit_flyer = _normalize_unit_label(unit_flyer)
+    if unit_flyer in LIQUID_UNITS | WEIGHT_UNITS | {"doz"}:
+        return qty, unit_flyer
+
+    return None, None
+
+
+def extract_total_measurement_from_text(text, multiplier=1):
+    """Fallback: infer total comparable content from product/deal text."""
+    if not text:
+        return None, None
+
+    cleaned = str(text).replace("\u00a0", " ").replace("-", " ").lower()
+
+    pack_matches = list(PACK_RE.finditer(cleaned))
+    if len(pack_matches) == 1:
+        pack_qty = float(pack_matches[0].group(1))
+        size_amount = float(pack_matches[0].group(3))
+        size_unit = _normalize_unit_label(pack_matches[0].group(4))
+        return pack_qty * size_amount * _safe_quantity(multiplier), size_unit
+
+    amount, unit = parse_per_unit_volume(cleaned)
+    if amount is not None and unit:
+        return amount * _safe_quantity(multiplier), unit
+
+    return None, None
+
+
+def normalize_price(price_flyer, unit_flyer, package_amount, per_unit_volume, category, product_name=None, deal_conditions=None):
+    """
+    normalized_price = total flyer price / total comparable content in unit_norm.
+    unit_norm is always one of: ml, lb, ea.
     """
     if price_flyer is None:
         return None, None
 
-    unit_norm = get_unit_norm(category)
-    cat       = (category or "").lower().strip()
-    u         = (unit_flyer or "").lower().strip()
-    qty       = package_amount or 1
+    fallback_text = " ".join(part for part in [product_name, deal_conditions] if part)
+    fallback_amount, fallback_unit = extract_total_measurement_from_text(fallback_text, 1)
 
-    # ── unit_flyer is already a measurement → normalize directly ──────────────
-    if u in ("lb", "lbs"):
-        return round(price_flyer / qty, 4), "per_lb"
-    if u == "g":
-        return round(price_flyer / qty * 453.592, 4), "per_lb"
-    if u == "kg":
-        return round(price_flyer / qty / 2.20462, 4), "per_lb"
-    if u == "oz":
-        if cat in LIQUID_CATEGORIES:
-            return round(price_flyer / qty / 29.5735, 4), "per_ml"
-        else:
-            return round(price_flyer / qty * 16, 4), "per_lb"
-    if u in ("ml",):
-        return round(price_flyer / qty, 4), "per_ml"
-    if u in ("l", "liter", "litre"):
-        return round(price_flyer / qty / 1000, 4), "per_ml"
-    if u in ("fl_oz", "floz"):
-        return round(price_flyer / qty / 29.5735, 4), "per_ml"
-    if u == "gal":
-        return round(price_flyer / qty / 3785.41, 4), "per_ml"
-    if u in ("qt", "quart"):
-        return round(price_flyer / qty / 946.353, 4), "per_ml"
-    if u in ("pt", "pint"):
-        return round(price_flyer / qty / 473.176, 4), "per_ml"
-    if u == "doz":
-        return round(price_flyer / qty / 12, 4), "per_ea"
+    inferred_source = per_unit_volume
+    if per_unit_volume is None and fallback_unit:
+        inferred_source = fallback_text
 
-    # ── unit_flyer = ea (or ct/pkg) → use per_unit_volume ─────────────────────
-    if per_unit_volume:
-        vol_amount, vol_unit = parse_per_unit_volume(per_unit_volume)
-        if vol_amount is not None:
-            if unit_norm == "per_ml":
-                total_ml = to_ml(vol_amount * qty, vol_unit)
-                if total_ml:
-                    return round(price_flyer / total_ml, 4), "per_ml"
-            elif unit_norm == "per_lb":
-                total_lb = to_lb(vol_amount * qty, vol_unit)
-                if total_lb:
-                    return round(price_flyer / total_lb, 4), "per_lb"
+    unit_norm = infer_unit_norm(unit_flyer, inferred_source, category)
+    u = _normalize_unit_label(unit_flyer)
+    total_amount, total_unit = extract_total_measurement(unit_flyer, package_amount, per_unit_volume)
+    if total_amount is None and fallback_unit:
+        total_amount, total_unit = fallback_amount, fallback_unit
 
-    # ── ea with no volume info ─────────────────────────────────────────────────
-    if u in ("ea", "each", "ct", "pkg", "box", "pk"):
-        return round(price_flyer / qty, 4), "per_ea"
+    if unit_norm == "ml":
+        if total_amount is not None and total_unit in (LIQUID_UNITS | {"oz"}):
+            total_ml = to_ml(total_amount, total_unit)
+            if total_ml:
+                return round(price_flyer / total_ml, 4), "ml"
+        if u in LIQUID_UNITS:
+            total_ml = to_ml(_safe_quantity(package_amount), u)
+            if total_ml:
+                return round(price_flyer / total_ml, 4), "ml"
+        log.warning(f"[NO LIQUID SIZE] unit_flyer={unit_flyer!r} | package_amount={package_amount!r} | per_unit_volume={per_unit_volume!r}")
+        return None, "ml"
 
-    log.warning(f"[UNRECOGNIZED unit_flyer] {u!r} — normalized_price null")
-    return None, None
+    if unit_norm == "lb":
+        if total_amount is not None and total_unit in WEIGHT_UNITS:
+            total_lb = to_lb(total_amount, total_unit)
+            if total_lb:
+                return round(price_flyer / total_lb, 4), "lb"
+        if u in WEIGHT_UNITS:
+            total_lb = to_lb(_safe_quantity(package_amount), u)
+            if total_lb:
+                return round(price_flyer / total_lb, 4), "lb"
+        log.warning(f"[NO WEIGHT SIZE] unit_flyer={unit_flyer!r} | package_amount={package_amount!r} | per_unit_volume={per_unit_volume!r}")
+        return None, "lb"
+
+    if total_amount is not None and total_unit == "doz":
+        total_each = total_amount * 12
+        return round(price_flyer / total_each, 4), "ea"
+
+    total_each = _safe_quantity(package_amount)
+    return round(price_flyer / total_each, 4), "ea"
 
 
 def import_deals(deals: list, store_name: str) -> dict:
@@ -165,7 +256,8 @@ def import_deals(deals: list, store_name: str) -> dict:
                 category        = deal.get("category")
 
                 norm_price, norm_unit = normalize_price(
-                    price_flyer, unit_flyer, package_amount, per_unit_volume, category
+                price_flyer, unit_flyer, package_amount, per_unit_volume, category
+                    , deal.get("product_name"), deal.get("deal_conditions")
                 )
                 if norm_price is None:
                     name = deal.get("product_name") or deal.get("product")

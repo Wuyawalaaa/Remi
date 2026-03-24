@@ -16,10 +16,12 @@
   </header>
 
   <main>
-  <div class="layout">
+    <div class="view-tabs" role="tablist" aria-label="Main views">
+      <button class="view-tab active" id="tab-deals" data-tab="deals" role="tab" aria-selected="true" aria-controls="panel-deals">Deals</button>
+      <button class="view-tab" id="tab-assistant" data-tab="assistant" role="tab" aria-selected="false" aria-controls="panel-assistant">Assistant</button>
+    </div>
 
-    <!-- ── Left: deal browser ── -->
-    <div class="deals-col">
+    <section class="tab-panel active" id="panel-deals" data-panel="deals" role="tabpanel" aria-labelledby="tab-deals">
 
       {% if sample %}
       <details id="sample-inspector" style="margin:0 0 20px;background:#1d1d1f;border-radius:12px;padding:16px 20px;">
@@ -34,13 +36,13 @@
             ("category",            sample.category),
             ("quality_tags",        sample.quality_tags | join(", ") if sample.quality_tags else "—"),
             ("original_price",      "$" ~ "%.2f"|format(sample.original_price) if sample.original_price else "—"),
-            ("sale_price",          "$" ~ "%.2f"|format(sample.sale_price) if sample.sale_price else "—"),
-            ("unit",                sample.unit or "—"),
+            ("price_flyer",         "$" ~ "%.2f"|format(sample.price_flyer) if sample.price_flyer else "—"),
+            ("unit_flyer",          sample.unit_flyer or "—"),
             ("discount_amount",     "$" ~ "%.2f"|format(sample.discount_amount) if sample.discount_amount else "—"),
             ("discount_percentage", "%.1f"|format(sample.discount_percentage) ~ "%" if sample.discount_percentage else "—"),
             ("normalized_price",    "$" ~ "%.2f"|format(sample.normalized_price) if sample.normalized_price else "—"),
-            ("normalized_unit",     sample.normalized_unit or "—"),
-            ("price_label",         sample.price_label or "—"),
+            ("unit_norm",           sample.unit_norm or "—"),
+            ("package_label",       sample.package_label or "—"),
             ("price_source",        sample.price_source or "—"),
             ("valid_from",          sample.valid_from or "—"),
             ("valid_to",            sample.valid_to or "—"),
@@ -99,7 +101,7 @@
               <th>Orig. price</th>
               <th>Deal</th>
               <th>Conditions</th>
-              <th>Unit price</th>
+              <th>Normalized price</th>
               <th>Valid</th>
             </tr>
           </thead>
@@ -109,11 +111,9 @@
           No deals found for this filter.
         </div>
       </div>
+    </section>
 
-    </div><!-- .deals-col -->
-
-    <!-- ── Right: chat agent ── -->
-    <div class="chat-col">
+    <section class="tab-panel" id="panel-assistant" data-panel="assistant" role="tabpanel" aria-labelledby="tab-assistant" hidden>
 
       <div class="chat-panel">
         <div class="chat-header">
@@ -136,10 +136,7 @@
         </div>
         <div id="shopping-list-content"></div>
       </div>
-
-    </div><!-- .chat-col -->
-
-  </div><!-- .layout -->
+    </section>
   </main>
 
   <script src="/static/script.js"></script>

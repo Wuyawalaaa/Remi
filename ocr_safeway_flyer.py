@@ -1,73 +1,157 @@
 import os
 import time
+import json
 import logging
 import base64
 from pathlib import Path
-from dotenv import load_dotenv
+
 import fitz  # PyMuPDF
+from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
-FLYERS_DIR  = os.path.join(os.path.dirname(__file__), "flyers", "safeway")
-TEMP_DIR    = os.path.join(os.path.dirname(__file__), "temp", "safeway_pages")
+FLYERS_DIR = os.path.join(os.path.dirname(__file__), "flyers", "safeway")
+TEMP_DIR = os.path.join(os.path.dirname(__file__), "temp", "safeway_pages")
 MAX_RETRIES = 3
 
 OCR_PROMPT = (
-    "You are processing a supermarket flyer image. Extract all deals and return a JSON array.\n\n"
-    "For each item extract:\n"
-    "- brand: string or null (manufacturer or store brand label e.g. \"Driscoll's\", \"Signature Select\", \"O Organics\" — null only if no brand is shown)\n"
-    "- product: string (generic item name only, no brand, no descriptors e.g. \"Eggs\", \"Strawberries\", \"Chicken Thighs\")\n"
-    "- quality_tags: string[] (all variant/grade descriptors e.g. [\"Organic\", \"Free Range\", \"Large\", \"Brown\", \"USDA Choice\", \"Wild-caught\"] — empty array if none)\n"
-    "- category: one of: produce, meat, seafood, dairy, bakery, deli, frozen, pantry, beverages, snacks, prepared foods, household, personal care, health, baby, alcohol, floral, condiments\n"
-    "- price_flyer: number or null (the price number exactly as printed on the flyer — do not compute, do not divide)\n"
-    "- original_price: number or null (pre-deal price if shown)\n"
-    "- unit_flyer: string (the pricing unit as shown on flyer: lb, oz, ea, gal, fl_oz, ml, g, kg, doz, ct)\n"
-    "- package_amount: integer (total number of individual units included in price_flyer. For plain items = 1. For \"2 for $5\" = 2. For a 6-pack = 6.)\n"
-    "- per_unit_volume: string or null (volume or weight of each individual unit as a string with unit e.g. \"750ml\", \"16oz\", \"1lb\", \"355ml\" — null if no size info or if unit_flyer is already a weight/volume)\n"
-    "- deal_type: string or null (exact deal format as stated on flyer e.g. \"2 for $5\", \"Buy 1 Get 1 Free\", \"Mix & Match BOGO\")\n"
-    "- deal_conditions: string or null (purchase conditions e.g. \"must buy 2\", \"equal or lesser value\", \"membership required\", \"Mix & Match eligible\" — combine multiple with semicolons)\n"
-    "- promotion_group_id: string or null (same id for all items sharing one promotion block)\n\n"
-    "Rules:\n\n"
-    "PRICE READING:\n"
-    "- Superscript or visually smaller digits after a larger number = decimal cents. \"799\" where \"99\" is smaller = $7.99\n"
-    "- All digits same visual size = face value. \"799\" all same size = $799\n"
-    "- price_flyer is always the raw printed number, never divided or computed\n\n"
-    "PACKAGE AMOUNT:\n"
-    "- \"2 for $5\" → package_amount=2, price_flyer=5.00, unit_flyer=ea\n"
-    "- \"6-pack 355ml cans\" → package_amount=6, per_unit_volume=\"355ml\", unit_flyer=ea\n"
-    "- \"$2.99 ea, must buy 2\" → package_amount=1, price_flyer=2.99 (price is per unit, buy condition is not deal quantity)\n"
-    "- single item, no pack → package_amount=1\n\n"
-    "PER UNIT VOLUME:\n"
-    "- Only fill if unit_flyer=ea and the individual unit has a known size\n"
-    "- \"6-pack 750ml bottles\" → per_unit_volume=\"750ml\"\n"
-    "- \"16oz tub\" → per_unit_volume=\"16oz\"\n"
-    "- If unit_flyer is already lb/oz/g/ml etc., set per_unit_volume=null\n\n"
-    "\"Buy X Get Y Free / BOGO\" TYPE:\n"
-    "- price_flyer = original_price if shown, else null\n"
-    "- package_amount = 1\n"
-    "- deal_type = exact wording on flyer\n"
-    "- deal_conditions = \"must buy X\" plus any other stated conditions\n\n"
-    "SPLITTING ITEMS:\n"
-    "- If multiple distinct food items share one deal block, create one entry per item\n"
-    "- Link them with the same promotion_group_id\n"
-    "- Do not split compound product names (e.g. \"strawberry waffle\" stays as one item)\n"
-    "- BOGO and Mix & Match are signals that splitting may be needed — apply judgment\n\n"
-    "GENERAL:\n"
-    "- Do not invent prices not visible in the image\n"
-    "- If a field is not determinable, use null\n"
-    "- Return only the JSON array. No explanation, no markdown fences.\n\n"
-    'Format: [{"brand":"Driscoll\'s","product":"Strawberries","quality_tags":[],"category":"produce",'
-    '"price_flyer":5.00,"original_price":null,"unit_flyer":"ea","package_amount":2,"per_unit_volume":"16oz",'
-    '"deal_type":"2 for $5","deal_conditions":"must buy 2","promotion_group_id":null}]'
+    "Extract supermarket flyer deals and return raw JSON only.\n"
+    "Return exactly one complete JSON array.\n"
+    "No markdown fences. No prose. No comments. Close the array before stopping.\n"
+    "Keep strings compact. Prefer null over explanation. Do not repeat marketing copy unless it changes the deal.\n\n"
+    "Fields per item:\n"
+    "- brand: string or null\n"
+    "- product: short generic item name only, no brand\n"
+    "- quality_tags: short string[] only for useful variant descriptors\n"
+    "- category: one of produce, meat, seafood, dairy, bakery, deli, frozen, pantry, beverages, snacks, prepared foods, household, personal care, health, baby, alcohol, floral, condiments\n"
+    "- price_flyer: number or null, raw printed price only\n"
+    "- original_price: number or null\n"
+    "- unit_flyer: one of lb, oz, ea, gal, fl_oz, ml, g, kg, doz, ct, null\n"
+    "- package_amount: integer\n"
+    "- per_unit_volume: short size string or null\n"
+    "- deal_type: short exact deal text or null\n"
+    "- deal_conditions: short semicolon-separated fragments or null\n"
+    "- promotion_group_id: short string or null\n\n"
+    "Rules:\n"
+    "- '799' with smaller trailing digits means 7.99; same-size digits mean face value.\n"
+    "- price_flyer is the printed price, never computed or divided.\n"
+    "- '2 for $5' => price_flyer=5.00, package_amount=2, unit_flyer='ea'.\n"
+    "- '$2.99 ea, must buy 2' => price_flyer=2.99, package_amount=1, deal_conditions='must buy 2'.\n"
+    "- If unit_flyer is already lb/oz/g/ml etc., set per_unit_volume=null.\n"
+    "- For BOGO, use deal_type for the promo text and keep package_amount=1.\n"
+    "- If multiple distinct food items share one promo block, emit one item per product with the same promotion_group_id.\n"
+    "- If a field is not determinable, use null.\n"
+    '- Example item: {"brand":"Driscoll\'s","product":"Strawberries","quality_tags":[],"category":"produce","price_flyer":5.0,"original_price":null,"unit_flyer":"ea","package_amount":2,"per_unit_volume":"16oz","deal_type":"2 for $5","deal_conditions":"must buy 2","promotion_group_id":null}'
 )
+
+OCR_RESCUE_PROMPT = (
+    "Return one complete JSON array only.\n"
+    "No markdown fences. No prose. No comments.\n"
+    "Output fewer items if needed, but every returned object must be complete valid JSON.\n"
+    "Keep strings very short. Use null instead of explanation. Close all objects and close the array.\n"
+    "Fields: brand, product, quality_tags, category, price_flyer, original_price, unit_flyer, "
+    "package_amount, per_unit_volume, deal_type, deal_conditions, promotion_group_id."
+)
+
+DEAL_RESPONSE_SCHEMA = {
+    "type": "array",
+    "items": {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "brand",
+            "product",
+            "quality_tags",
+            "category",
+            "price_flyer",
+            "original_price",
+            "unit_flyer",
+            "package_amount",
+            "per_unit_volume",
+            "deal_type",
+            "deal_conditions",
+            "promotion_group_id",
+        ],
+        "properties": {
+            "brand": {"type": ["string", "null"]},
+            "product": {"type": "string"},
+            "quality_tags": {"type": "array", "items": {"type": "string"}},
+            "category": {
+                "type": ["string", "null"],
+                "enum": [
+                    "produce",
+                    "meat",
+                    "seafood",
+                    "dairy",
+                    "bakery",
+                    "deli",
+                    "frozen",
+                    "pantry",
+                    "beverages",
+                    "snacks",
+                    "prepared foods",
+                    "household",
+                    "personal care",
+                    "health",
+                    "baby",
+                    "alcohol",
+                    "floral",
+                    "condiments",
+                    None,
+                ],
+            },
+            "price_flyer": {"type": ["number", "null"]},
+            "original_price": {"type": ["number", "null"]},
+            "unit_flyer": {
+                "type": ["string", "null"],
+                "enum": ["lb", "oz", "ea", "gal", "fl_oz", "ml", "g", "kg", "doz", "ct", None],
+            },
+            "package_amount": {"type": "integer"},
+            "per_unit_volume": {"type": ["string", "null"]},
+            "deal_type": {"type": ["string", "null"]},
+            "deal_conditions": {"type": ["string", "null"]},
+            "promotion_group_id": {"type": ["string", "null"]},
+        },
+    },
+}
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 log = logging.getLogger(__name__)
 
 
-# ── Provider implementations ──────────────────────────────────────────────────
+def _coerce_json_array_text(text: str) -> str | None:
+    text = (text or "").strip()
+    if not text:
+        return None
 
-def ocr_with_gemini(image_bytes: bytes, page_num: int) -> str:
+    if text.startswith("```"):
+        lines = text.splitlines()
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+
+    start = text.find("[")
+    end = text.rfind("]")
+    if start == -1 or end == -1 or end < start:
+        return None
+
+    candidate = text[start:end + 1]
+    try:
+        parsed = json.loads(candidate)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(parsed, list):
+        return None
+    return json.dumps(parsed, ensure_ascii=False)
+
+
+def _normalize_prompt(prompt: str | None) -> str:
+    return prompt or OCR_PROMPT
+
+
+def ocr_with_gemini(image_bytes: bytes, page_num: int, prompt: str = OCR_PROMPT) -> str:
     from google import genai
     from google.genai import types
 
@@ -80,14 +164,61 @@ def ocr_with_gemini(image_bytes: bytes, page_num: int) -> str:
         model="gemini-2.0-flash",
         contents=[
             types.Part.from_bytes(data=image_bytes, mime_type="image/png"),
-            OCR_PROMPT,
+            _normalize_prompt(prompt),
         ],
-        config=types.GenerateContentConfig(max_output_tokens=8000),
+        config=types.GenerateContentConfig(maxOutputTokens=8000),
     )
     return response.text
 
 
-def ocr_with_deepseek(image_bytes: bytes, page_num: int) -> str:
+def ocr_with_vertex(image_bytes: bytes, page_num: int, prompt: str = OCR_PROMPT, rescue: bool = False) -> str:
+    from google import genai
+    from google.genai import types
+    from google.oauth2 import service_account
+
+    service_account_file = os.getenv("VERTEX_SERVICE_ACCOUNT_FILE")
+    project = os.getenv("GOOGLE_CLOUD_PROJECT")
+    location = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
+
+    if not service_account_file:
+        raise RuntimeError("VERTEX_SERVICE_ACCOUNT_FILE not set in .env")
+    if not project:
+        raise RuntimeError("GOOGLE_CLOUD_PROJECT not set in .env")
+
+    cred_path = service_account_file
+    if not os.path.isabs(cred_path):
+        cred_path = os.path.join(os.path.dirname(__file__), cred_path)
+
+    credentials = service_account.Credentials.from_service_account_file(
+        cred_path,
+        scopes=["https://www.googleapis.com/auth/cloud-platform"],
+    )
+
+    client = genai.Client(
+        vertexai=True,
+        project=project,
+        location=location,
+        credentials=credentials,
+    )
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=[
+            types.Part.from_bytes(data=image_bytes, mime_type="image/png"),
+            _normalize_prompt(prompt),
+        ],
+        config=types.GenerateContentConfig(
+            temperature=0,
+            candidateCount=1,
+            maxOutputTokens=4096 if rescue else 8192,
+            responseMimeType="application/json",
+            responseJsonSchema=DEAL_RESPONSE_SCHEMA,
+            thinkingConfig=types.ThinkingConfig(thinkingBudget=0),
+        ),
+    )
+    return response.text
+
+
+def ocr_with_deepseek(image_bytes: bytes, page_num: int, prompt: str = OCR_PROMPT) -> str:
     from openai import OpenAI
 
     api_key = os.getenv("DEEPSEEK_API_KEY")
@@ -103,7 +234,7 @@ def ocr_with_deepseek(image_bytes: bytes, page_num: int) -> str:
             "role": "user",
             "content": [
                 {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
-                {"type": "text", "text": OCR_PROMPT},
+                {"type": "text", "text": _normalize_prompt(prompt)},
             ],
         }],
         max_tokens=8000,
@@ -111,7 +242,7 @@ def ocr_with_deepseek(image_bytes: bytes, page_num: int) -> str:
     return response.choices[0].message.content
 
 
-def ocr_with_openai(image_bytes: bytes, page_num: int) -> str:
+def ocr_with_openai(image_bytes: bytes, page_num: int, prompt: str = OCR_PROMPT) -> str:
     from openai import OpenAI
 
     api_key = os.getenv("OPENAI_API_KEY")
@@ -127,7 +258,7 @@ def ocr_with_openai(image_bytes: bytes, page_num: int) -> str:
             "role": "user",
             "content": [
                 {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}},
-                {"type": "text", "text": OCR_PROMPT},
+                {"type": "text", "text": _normalize_prompt(prompt)},
             ],
         }],
         max_tokens=8000,
@@ -135,7 +266,7 @@ def ocr_with_openai(image_bytes: bytes, page_num: int) -> str:
     return response.choices[0].message.content
 
 
-def ocr_with_anthropic(image_bytes: bytes, page_num: int) -> str:
+def ocr_with_anthropic(image_bytes: bytes, page_num: int, prompt: str = OCR_PROMPT) -> str:
     import anthropic
 
     api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -152,23 +283,23 @@ def ocr_with_anthropic(image_bytes: bytes, page_num: int) -> str:
             "role": "user",
             "content": [
                 {"type": "image", "source": {"type": "base64", "media_type": "image/png", "data": b64}},
-                {"type": "text", "text": OCR_PROMPT},
+                {"type": "text", "text": _normalize_prompt(prompt)},
             ],
         }],
     )
     return response.content[0].text
 
 
-def ocr_with_openrouter(image_bytes: bytes, page_num: int) -> str:
-    from openai import OpenAI
+def ocr_with_openrouter(image_bytes: bytes, page_num: int, prompt: str = OCR_PROMPT) -> str:
     import io
+
+    from openai import OpenAI
     from PIL import Image
 
     api_key = os.getenv("OPENROUTER_API_KEY")
     if not api_key:
         raise RuntimeError("OPENROUTER_API_KEY not set in .env")
 
-    # Compress to JPEG to stay within size limits
     img = Image.open(io.BytesIO(image_bytes))
     buf = io.BytesIO()
     img.save(buf, format="JPEG", quality=70)
@@ -181,7 +312,7 @@ def ocr_with_openrouter(image_bytes: bytes, page_num: int) -> str:
             "role": "user",
             "content": [
                 {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
-                {"type": "text", "text": OCR_PROMPT},
+                {"type": "text", "text": _normalize_prompt(prompt)},
             ],
         }],
         max_tokens=8000,
@@ -189,16 +320,16 @@ def ocr_with_openrouter(image_bytes: bytes, page_num: int) -> str:
     return response.choices[0].message.content
 
 
-def ocr_with_novita(image_bytes: bytes, page_num: int) -> str:
-    from openai import OpenAI
+def ocr_with_novita(image_bytes: bytes, page_num: int, prompt: str = OCR_PROMPT) -> str:
     import io
+
+    from openai import OpenAI
     from PIL import Image
 
     api_key = os.getenv("NOVITA_API_KEY")
     if not api_key:
         raise RuntimeError("NOVITA_API_KEY not set in .env")
 
-    # Compress to JPEG to stay within size limits
     img = Image.open(io.BytesIO(image_bytes))
     buf = io.BytesIO()
     img.save(buf, format="JPEG", quality=70)
@@ -220,16 +351,15 @@ def ocr_with_novita(image_bytes: bytes, page_num: int) -> str:
 
 
 PROVIDERS = {
-    "gemini":      ocr_with_gemini,
-    "deepseek":    ocr_with_deepseek,
-    "openai":      ocr_with_openai,
-    "anthropic":   ocr_with_anthropic,
-    "openrouter":  ocr_with_openrouter,
-    "novita":      ocr_with_novita,
+    "gemini": ocr_with_gemini,
+    "vertex": ocr_with_vertex,
+    "deepseek": ocr_with_deepseek,
+    "openai": ocr_with_openai,
+    "anthropic": ocr_with_anthropic,
+    "openrouter": ocr_with_openrouter,
+    "novita": ocr_with_novita,
 }
 
-
-# ── Core logic ────────────────────────────────────────────────────────────────
 
 def get_provider():
     name = os.getenv("OCR_PROVIDER", "gemini").lower()
@@ -269,7 +399,22 @@ def ocr_page(ocr_fn, image_path, page_num):
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             log.info(f"  OCR page {page_num} (attempt {attempt})...")
-            return ocr_fn(image_bytes, page_num)
+            text = ocr_fn(image_bytes, page_num, OCR_PROMPT)
+            normalized = _coerce_json_array_text(text)
+            if normalized is not None:
+                return normalized
+
+            log.warning(f"  Page {page_num} attempt {attempt} returned malformed or truncated JSON.")
+
+            if ocr_fn is ocr_with_vertex:
+                log.info(f"  OCR page {page_num} rescue attempt...")
+                rescue_text = ocr_fn(image_bytes, page_num, OCR_RESCUE_PROMPT, rescue=True)
+                normalized = _coerce_json_array_text(rescue_text)
+                if normalized is not None:
+                    return normalized
+                raise ValueError("malformed rescue output")
+
+            raise ValueError("malformed output")
         except Exception as e:
             log.warning(f"  Page {page_num} attempt {attempt} failed: {e}")
             if attempt < MAX_RETRIES:
@@ -302,7 +447,7 @@ def run():
             f.write("\n")
 
     log.info(f"OCR complete. Output: {output_path}")
-    print(f"\n=== OCR complete ===")
+    print("\n=== OCR complete ===")
     print(f"Provider:        {provider_name}")
     print(f"Pages processed: {len(page_texts)}")
     print(f"Output:          {output_path}")

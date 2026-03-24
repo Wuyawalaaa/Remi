@@ -1,6 +1,42 @@
 let activeStore    = "";
 let activeCategory = "";
 let activeSearch   = "";
+let activeTab      = "deals";
+
+const tabButtons = Array.from(document.querySelectorAll(".view-tab"));
+const tabPanels  = Array.from(document.querySelectorAll(".tab-panel"));
+
+function setActiveTab(tabName, syncHash = true) {
+  activeTab = tabName === "assistant" ? "assistant" : "deals";
+
+  tabButtons.forEach(button => {
+    const isActive = button.dataset.tab === activeTab;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+
+  tabPanels.forEach(panel => {
+    const isActive = panel.dataset.panel === activeTab;
+    panel.classList.toggle("active", isActive);
+    panel.hidden = !isActive;
+  });
+
+  if (syncHash) {
+    const nextHash = "#" + activeTab;
+    if (window.location.hash !== nextHash) {
+      history.replaceState(null, "", nextHash);
+    }
+  }
+}
+
+tabButtons.forEach(button => {
+  button.addEventListener("click", () => setActiveTab(button.dataset.tab));
+});
+
+window.addEventListener("hashchange", () => {
+  const hashTab = window.location.hash === "#assistant" ? "assistant" : "deals";
+  setActiveTab(hashTab, false);
+});
 
 // ── Filter chip clicks ────────────────────────────────────────────────────────
 
@@ -49,13 +85,13 @@ async function loadDeals() {
 // ── Rendering ─────────────────────────────────────────────────────────────────
 
 function formatSalePrice(deal) {
-  if (deal.sale_price != null) return "$" + parseFloat(deal.sale_price).toFixed(2) + (deal.unit ? " / " + deal.unit : "");
+  if (deal.price_flyer != null) return "$" + parseFloat(deal.price_flyer).toFixed(2) + (deal.unit_flyer ? " / " + deal.unit_flyer : "");
   return "—";
 }
 
 function formatNormPrice(deal) {
-  if (!deal.normalized_price || !deal.normalized_unit) return "—";
-  const unit = deal.normalized_unit.replace("per_", "");
+  if (!deal.normalized_price || !deal.unit_norm) return "—";
+  const unit = deal.unit_norm;
   const decimals = unit === "ml" ? 4 : 2;
   return "$" + parseFloat(deal.normalized_price).toFixed(decimals) + " / " + unit;
 }
@@ -81,8 +117,8 @@ function renderDeals(deals) {
 
     const discPct = deal.discount_percentage
       ? Math.round(deal.discount_percentage)
-      : (deal.original_price && deal.sale_price && deal.original_price > deal.sale_price
-          ? Math.round((1 - deal.sale_price / deal.original_price) * 100)
+      : (deal.original_price && deal.price_flyer && deal.original_price > deal.price_flyer
+          ? Math.round((1 - deal.price_flyer / deal.original_price) * 100)
           : null);
 
     const tags = (deal.quality_tags || []).map(t => `<span class="quality-tag">${t}</span>`).join("");
@@ -101,16 +137,18 @@ function renderDeals(deals) {
     const validHtml = deal.valid_from && deal.valid_to
       ? deal.valid_from.slice(5) + " – " + deal.valid_to.slice(5)
       : "—";
+    const packageLabel = deal.package_label || "—";
+    const conditionsLabel = deal.deal_conditions || "—";
 
     tr.innerHTML = `
       <td><span class="store-badge">${deal.store_name}</span></td>
       <td class="col-product">${nameHtml}</td>
       <td><span class="category-tag">${deal.category || "—"}</span></td>
-      <td class="col-pkg">${deal.package_size || "—"}</td>
+      <td class="col-pkg" title="${escapeHtml(packageLabel)}">${packageLabel}</td>
       <td class="col-price">${formatSalePrice(deal)}</td>
       <td class="col-orig">${origHtml}</td>
       <td>${dealHtml}</td>
-      <td class="col-cond">${deal.deal_conditions || "—"}</td>
+      <td class="col-cond" title="${escapeHtml(conditionsLabel)}">${conditionsLabel}</td>
       <td class="col-norm">${normHtml}</td>
       <td class="col-valid">${validHtml}</td>
     `;
@@ -118,7 +156,16 @@ function renderDeals(deals) {
   });
 }
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
 // ── Initial load ──────────────────────────────────────────────────────────────
+setActiveTab(window.location.hash === "#assistant" ? "assistant" : "deals", false);
 loadDeals();
 
 // ── Chat agent ────────────────────────────────────────────────────────────────
