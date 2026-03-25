@@ -12,113 +12,13 @@ sys.path.insert(0, os.path.dirname(__file__))
 from parse_safeway_deals import (
     validate_deal, enrich_deal, normalize_category, to_float
 )
+from parse_taxonomy import google_category_to_canonical, guess_category_from_name
+from parse_compound_deals import expand_compound_deal
 
 FLYERS_DIR = os.path.join(os.path.dirname(__file__), "flyers", "cardenas")
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 log = logging.getLogger(__name__)
-
-
-# ── Google taxonomy L2 → canonical category ───────────────────────────────────
-
-GOOGLE_L2_MAP = {
-    "beverages":                    "beverages",
-    "juice":                        "beverages",
-    "soda":                         "beverages",
-    "water":                        "beverages",
-    "coffee":                       "beverages",
-    "tea":                          "beverages",
-    "beer":                         "alcohol",
-    "wine":                         "alcohol",
-    "spirits":                      "alcohol",
-    "produce":                      "produce",
-    "fresh vegetables":             "produce",
-    "fresh fruit":                  "produce",
-    "herbs & spices (fresh)":       "produce",
-    "meat":                         "meat",
-    "beef":                         "meat",
-    "pork":                         "meat",
-    "poultry":                      "meat",
-    "lamb":                         "meat",
-    "game meat":                    "meat",
-    "seafood":                      "seafood",
-    "fish":                         "seafood",
-    "shrimp":                       "seafood",
-    "shellfish":                    "seafood",
-    "dairy":                        "dairy",
-    "cheese":                       "dairy",
-    "milk":                         "dairy",
-    "butter":                       "dairy",
-    "eggs":                         "dairy",
-    "cream":                        "dairy",
-    "yogurt":                       "dairy",
-    "bread":                        "bakery",
-    "bakery":                       "bakery",
-    "pastries":                     "bakery",
-    "tortillas":                    "bakery",
-    "deli":                         "deli",
-    "deli meats":                   "deli",
-    "prepared meals":               "prepared foods",
-    "soups & stews":                "prepared foods",
-    "frozen":                       "frozen",
-    "frozen foods":                 "frozen",
-    "ice cream":                    "frozen",
-    "frozen vegetables":            "frozen",
-    "frozen meat":                  "frozen",
-    "snacks":                       "snacks",
-    "chips":                        "snacks",
-    "crackers":                     "snacks",
-    "candy":                        "snacks",
-    "cookies":                      "snacks",
-    "nuts":                         "snacks",
-    "condiments":                   "pantry",
-    "sauces":                       "pantry",
-    "canned goods":                 "pantry",
-    "pasta":                        "pantry",
-    "rice":                         "pantry",
-    "beans":                        "pantry",
-    "baking":                       "pantry",
-    "cooking oils":                 "pantry",
-    "cereal":                       "pantry",
-    "breakfast foods":              "pantry",
-    "household":                    "household",
-    "cleaning supplies":            "household",
-    "laundry":                      "household",
-    "paper goods":                  "household",
-    "personal care":                "personal care",
-    "hair care":                    "personal care",
-    "oral care":                    "personal care",
-    "skin care":                    "personal care",
-    "health":                       "health",
-    "vitamins":                     "health",
-    "medicine":                     "health",
-    "baby":                         "baby",
-    "baby food":                    "baby",
-    "diapers":                      "baby",
-    "flowers":                      "floral",
-    "plants":                       "floral",
-}
-
-
-def google_category_to_canonical(item_categories: dict) -> str:
-    """Map Flipp's Google taxonomy to our canonical category."""
-    if not item_categories:
-        return None
-    # Try L3, L2, L1 in order — most specific first
-    for level in ("l3", "l2", "l1"):
-        node = item_categories.get(level) or {}
-        name = (node.get("category_name") or "").lower().strip()
-        if name in GOOGLE_L2_MAP:
-            return GOOGLE_L2_MAP[name]
-    # Fallback: try CATEGORY_MAP from parse_safeway_deals
-    for level in ("l3", "l2", "l1"):
-        node = item_categories.get(level) or {}
-        name = (node.get("category_name") or "").lower().strip()
-        result = normalize_category(name)
-        if result:
-            return result
-    return None
-
 
 # ── Price parsing ──────────────────────────────────────────────────────────────
 
@@ -128,10 +28,19 @@ _OZ_RE      = re.compile(r"\b(?:FL\.?\s*)?OZ\b", re.IGNORECASE)
 # Matches strings that are purely a size/count with no real product word
 # e.g. "48 oz", "5 Ct", "5 Lb Bag", "375 mL", "30 Pk, 12 oz Cans"
 _SIZE_ONLY_RE = re.compile(
-    r"^[\d\s\.,]*(oz|lb|ct|pk|ml|liter|kg|g|fl\.?\s*oz|bag|pack|cans?|bottles?|liters?)"
-    r"(\s*[\d\s\.,]*(oz|lb|ct|pk|ml|liter|kg|g|bag|pack|cans?|bottles?|liters?))*\s*$",
+    r"^[\d\s\.,\-–]*(oz|lb|ct|pk|ml|liter|kg|g|fl\.?\s*oz|bag|pack|cans?|bottles?|liters?|inch|in)"
+    r"(\s*[\d\s\.,\-–]*(oz|lb|ct|pk|ml|liter|kg|g|bag|pack|cans?|bottles?|liters?|inch|in))*\s*$",
     re.IGNORECASE
 )
+_TRAILING_NOISE_RE = re.compile(
+    r"(selected varieties|service counter|final price|\+tax)\b.*$",
+    re.IGNORECASE,
+)
+_GENERIC_FRAGMENT_WORDS = {
+    "fresh", "regular", "marinated", "mexican", "bartlett", "bosc", "croissant",
+    "chips", "roast", "red", "white", "bulk", "con", "frijoles", "salsa",
+    "bone", "boneless", "in",
+}
 
 
 def parse_price(pre_text, price_text, post_text, sale_story):
@@ -184,7 +93,40 @@ def parse_price(pre_text, price_text, post_text, sale_story):
 
 def is_size_only_name(name: str) -> bool:
     """Return True if the name is just a package size with no real product word."""
-    return bool(name and _SIZE_ONLY_RE.match(name.strip()))
+    if not name:
+        return False
+    cleaned = re.sub(r"\s+", " ", name.replace("\u00a0", " ")).strip()
+    return bool(_SIZE_ONLY_RE.match(cleaned))
+
+
+def clean_product_text(text: str) -> str:
+    if not text:
+        return ""
+    text = text.replace("\u00a0", " ")
+    text = re.sub(r"\s+", " ", text).strip(" ,;-")
+    text = _TRAILING_NOISE_RE.sub("", text).strip(" ,;-")
+    return text
+
+
+def is_fragmentary_name(name: str) -> bool:
+    cleaned = clean_product_text(name)
+    if not cleaned:
+        return True
+    bare = cleaned.strip("()").strip()
+    words = re.findall(r"[A-Za-z]+", bare.lower())
+    if is_size_only_name(bare):
+        return True
+    if not words:
+        return True
+    if len(words) == 1 and words[0] in _GENERIC_FRAGMENT_WORDS:
+        return True
+    if len(words) == 1 and len(bare) <= 10:
+        return True
+    if len(words) <= 3 and all(word in _GENERIC_FRAGMENT_WORDS for word in words):
+        return True
+    if bare.startswith("(") and bare.endswith(")"):
+        return True
+    return False
 
 
 _COMPOUND_SPLIT_RE = re.compile(r",\s*| or ", re.IGNORECASE)
@@ -195,6 +137,7 @@ def split_compound_name(name: str) -> list[str]:
     Only splits when the result has multiple substantial parts (not size descriptors)."""
     if not name:
         return [name]
+    name = clean_product_text(name)
     # Only attempt split if there's a comma or ' or ' present
     if "," not in name and " or " not in name.lower():
         return [name]
@@ -205,6 +148,25 @@ def split_compound_name(name: str) -> list[str]:
     # Require each part to be at least 2 chars and have at least one letter
     valid_parts = [p for p in parts if len(p) >= 2 and re.search(r"[a-zA-Z]", p)]
     return valid_parts if len(valid_parts) > 1 else [name]
+
+
+def choose_product_names(product: dict) -> list[str]:
+    description = clean_product_text(product.get("description") or "")
+    alt_name = clean_product_text(product.get("name") or "")
+
+    if description:
+        split_names = split_compound_name(description)
+        if len(split_names) > 1 and any(is_fragmentary_name(part) for part in split_names):
+            if alt_name and not is_fragmentary_name(alt_name):
+                return [alt_name]
+            return [description]
+        if len(split_names) == 1 and is_fragmentary_name(split_names[0]) and alt_name and not is_fragmentary_name(alt_name):
+            return [alt_name]
+        return [clean_product_text(part) for part in split_names if clean_product_text(part)]
+
+    if alt_name and not is_fragmentary_name(alt_name):
+        return [alt_name]
+    return []
 
 
 def product_to_deal(p: dict) -> list[dict]:
@@ -220,12 +182,14 @@ def product_to_deal(p: dict) -> list[dict]:
         "unit":           unit,
         "deal_type":      deal_type,
         "quality_tags":   [],
-        "category":       google_category_to_canonical(p.get("item_categories")),
+        "category":       (
+            google_category_to_canonical(p.get("item_categories"), normalize_category)
+            or guess_category_from_name(p.get("description") or p.get("name"))
+        ),
         "valid_from":     (p.get("valid_from") or "")[:10],
         "valid_to":       (p.get("valid_to")   or "")[:10],
     }
-    raw_name = p.get("description") or p.get("name")
-    names = split_compound_name(raw_name)
+    names = choose_product_names(p)
     return [{**base, "product_name": n} for n in names]
 
 
@@ -253,10 +217,10 @@ def run():
     all_deals = []
     for p in products:
         for deal in product_to_deal(p):
-            if is_size_only_name(deal.get("product_name")):
+            if is_size_only_name(deal.get("product_name")) or is_fragmentary_name(deal.get("product_name")):
                 continue
             deal = enrich_deal(deal, valid_from, valid_to)
-            all_deals.append(deal)
+            all_deals.extend(expand_compound_deal(deal, "Cardenas"))
 
     valid_deals = [d for d in all_deals if validate_deal(d)]
     skipped     = len(all_deals) - len(valid_deals)

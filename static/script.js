@@ -195,7 +195,11 @@ function setLoading(on) {
 }
 
 function renderShoppingList(list) {
-  if (!list || list.length === 0) return;
+  if (!list || list.length === 0) {
+    listPanel.style.display = "none";
+    listContent.innerHTML = "";
+    return;
+  }
   listPanel.style.display = "block";
   listContent.innerHTML = "";
 
@@ -239,8 +243,6 @@ function renderShoppingList(list) {
       const nameEl = document.createElement("span");
       nameEl.className = "list-item-name";
       nameEl.textContent = item.name;
-
-      totalSave += parseFloat(item.save_amount) || 0;
 
       const priceEl = document.createElement("span");
       priceEl.className = "list-item-price";

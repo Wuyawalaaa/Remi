@@ -9,6 +9,7 @@ from collections import Counter
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from parse_safeway_deals import validate_deal, enrich_deal, normalize_category
+from parse_taxonomy import google_category_to_canonical
 
 FLYERS_DIR = os.path.join(os.path.dirname(__file__), "flyers", "99ranch")
 
@@ -81,7 +82,10 @@ def product_to_deal(p: dict) -> dict:
         original_price = None
 
     unit     = parse_unit(saleUom, variantName)
-    category = guess_category(name)
+    category = (
+        google_category_to_canonical(p.get("item_categories"), normalize_category)
+        or guess_category(name)
+    )
 
     return {
         "product_name":    name,

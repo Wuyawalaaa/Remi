@@ -1,0 +1,20 @@
+{
+  "store": "99 Ranch",
+  "store_id": 8899,
+  "valid_from": "2026-03-20",
+  "valid_to": "2026-03-26",
+  "fetched_at": "2026-03-23T00:22:39.222142",
+  "themes": [
+    {
+      "theme_id": 18,
+      "theme_name": "",
+      "count": 0
+    },
+    {
+      "theme_id": 51,
+      "theme_name": "",
+      "count": 0
+    }
+  ],
+  "products": []
+}

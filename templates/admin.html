@@ -237,6 +237,46 @@
     .tag { font-size: 12px; padding: 4px 12px; border-radius: 20px; }
     .tag.gray { background: #fff; border: 1px solid #e5e5ea; color: #6e6e73; }
     .tag.blue { background: #e8f0fe; color: #1a56db; }
+
+    /* ── Blocked deals audit ── */
+    .blocked-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+      gap: 10px;
+    }
+    .blocked-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      padding: 14px 16px;
+      border-left: 4px solid #d63031;
+    }
+    .blocked-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .blocked-name { font-size: 16px; font-weight: 700; color: #1d1d1f; }
+    .blocked-store { font-size: 11px; font-weight: 700; color: #6e6e73; letter-spacing: 0.8px; text-transform: uppercase; }
+    .blocked-reason {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #b42318;
+      background: #fff1f0;
+      border-radius: 999px;
+      padding: 4px 10px;
+      margin-bottom: 10px;
+    }
+    .blocked-meta {
+      font-size: 12px;
+      color: #6e6e73;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 10px;
+    }
   </style>
 </head>
 <body>
@@ -308,7 +348,40 @@
   </details>
   {% endif %}
 
-  <!-- ── 4. OCR accuracy (collapsible) ── -->
+  <!-- ── 4. Blocked deals audit ── -->
+  {% if blocked_deals %}
+  <details>
+    <summary>
+      Blocked Deals Audit &nbsp;
+      <span style="font-size:13px;font-weight:400;color:#a1a1a6">{{ blocked_deals|length }} rows hidden from API/UI</span>
+    </summary>
+    <div class="details-body">
+      <div class="blocked-list">
+        {% for item in blocked_deals %}
+        <div class="blocked-card">
+          <div class="blocked-head">
+            <div class="blocked-store">{{ item.store_name }}</div>
+            <div style="font-size:12px;color:#6e6e73;">
+              {% if item.price_flyer is not none %}${{ "%.2f"|format(item.price_flyer) }}{% else %}—{% endif %}
+              {% if item.unit_flyer %} / {{ item.unit_flyer }}{% endif %}
+            </div>
+          </div>
+          <div class="blocked-name">{{ item.product_name }}</div>
+          <div class="blocked-reason">{{ item.block_reason }}</div>
+          <div class="blocked-meta">
+            <div>Category: {{ item.category or "—" }}</div>
+            <div>Package: {{ item.package_label or "—" }}</div>
+            <div>Deal: {{ item.deal_type or "—" }}</div>
+            <div>Conditions: {{ item.deal_conditions or "—" }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </details>
+  {% endif %}
+
+  <!-- ── 5. OCR accuracy (collapsible) ── -->
   <details>
     <summary>
       OCR Accuracy vs Flipp &nbsp;

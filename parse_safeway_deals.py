@@ -8,6 +8,7 @@ from collections import Counter
 from dotenv import load_dotenv
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+from parse_compound_deals import expand_compound_deal
 
 FLYERS_DIR = os.path.join(os.path.dirname(__file__), "flyers", "safeway")
 
@@ -210,10 +211,14 @@ def parse_and_save(store_name: str, flyers_dir: str, file_prefix: str) -> str:
         log.info(f"  Page {page_num}: {len(deals)} items")
         all_deals.extend(deals)
 
-    all_deals = [enrich_deal(d, valid_from, valid_to) for d in all_deals]
-    for d in all_deals:
+    enriched_deals = [enrich_deal(d, valid_from, valid_to) for d in all_deals]
+    expanded_deals = []
+    for deal in enriched_deals:
+        expanded_deals.extend(expand_compound_deal(deal, store_name))
+
+    for d in expanded_deals:
         validate_deal(d)
-    valid_deals = all_deals
+    valid_deals = expanded_deals
 
     categories = Counter(d.get("category", "unknown") for d in valid_deals)
 

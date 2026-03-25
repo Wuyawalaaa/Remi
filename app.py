@@ -5,14 +5,35 @@ import glob
 import uuid
 import sqlite3
 import difflib
+from collections import Counter
 from datetime import date, datetime, timedelta
 from urllib.parse import urlencode
 from flask import Flask, render_template, request, jsonify, send_file
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 DB_PATH = os.path.join(os.path.dirname(__file__), "database.db")
 
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
 ALL_STORES = ["Safeway", "H Mart", "99 Ranch", "Cardenas"]
+
+_BLOCKED_EXACT_NAMES = {
+    "monthly credit",
+    "points for discounts",
+    "deals",
+    "products",
+    "delivery",
+    "exclusive brands",
+    "points",
+}
+
+_BLOCKED_GENERIC_ONE_WORD = {
+    "fresh",
+    "regular",
+    "roast",
+    "marinated",
+}
 
 
 def _package_label(deal):
@@ -34,6 +55,60 @@ def _prepare_deal_record(deal):
         deal["product_name"] = deal.get("product") or deal.get("brand") or "Unknown item"
     deal["package_label"] = _package_label(deal)
     return deal
+
+
+def _deal_block_reason(deal):
+    name = (deal.get("product_name") or "").strip()
+    lowered = name.lower()
+    category = (deal.get("category") or "").strip().lower()
+    package_label = (deal.get("package_label") or "").strip()
+    deal_type = (deal.get("deal_type") or "").strip().lower()
+    conditions = (deal.get("deal_conditions") or "").strip().lower()
+    quality_tags = deal.get("quality_tags") or []
+
+    if lowered in _BLOCKED_EXACT_NAMES:
+        return "promo copy / loyalty marketing"
+
+    if (
+        lowered in _BLOCKED_GENERIC_ONE_WORD
+        and not category
+        and not package_label
+        and not quality_tags
+        and not deal_type
+    ):
+        return "generic modifier without product identity"
+
+    if any(token in lowered for token in ("points", "credit", "delivery", "exclusive brand")):
+        if not category and not package_label and not quality_tags:
+            return "non-product membership / service row"
+
+    if not name or lowered in {"unknown item", "-", "—"}:
+        return "missing product name"
+
+    if not category and not package_label and not quality_tags and not deal_type and not conditions:
+        words = re.findall(r"[a-zA-Z]+", lowered)
+        if len(words) <= 1:
+            return "too little product detail"
+
+    return None
+
+
+def _filter_displayable_deals(deals):
+    visible = []
+    blocked = []
+    for deal in deals:
+        prepared = _prepare_deal_record(dict(deal))
+        try:
+            prepared["quality_tags"] = json.loads(prepared["quality_tags"] or "[]")
+        except Exception:
+            prepared["quality_tags"] = prepared.get("quality_tags") or []
+        reason = _deal_block_reason(prepared)
+        if reason:
+            prepared["block_reason"] = reason
+            blocked.append(prepared)
+        else:
+            visible.append(prepared)
+    return visible, blocked
 
 
 def get_deals(store=None, category=None):
@@ -69,16 +144,8 @@ def get_deals(store=None, category=None):
     rows = cur.execute(query, params).fetchall()
     con.close()
 
-    deals = []
-    for row in rows:
-        d = _prepare_deal_record(dict(row))
-        try:
-            d["quality_tags"] = json.loads(d["quality_tags"] or "[]")
-        except Exception:
-            d["quality_tags"] = []
-        deals.append(d)
-
-    return deals
+    visible, _ = _filter_displayable_deals(rows)
+    return visible
 
 
 def get_ocr_snippet(product_name, raw_txt_path, page_num, context=7):
@@ -432,24 +499,36 @@ def admin():
     con_dq.row_factory = sqlite3.Row
     cur_dq = con_dq.cursor()
 
-    cat_rows = cur_dq.execute("""
-        SELECT category, COUNT(*) AS cnt FROM deals
+    active_rows = cur_dq.execute("""
+        SELECT id, store_name, product_name, quality_tags,
+               original_price, price_flyer, unit_flyer,
+               package_amount, per_unit_volume,
+               discount_amount, discount_percentage,
+               valid_from, valid_to, category,
+               normalized_price, unit_norm, deal_type, deal_conditions,
+               promotion_group_id, price_source, flyer_image_url, scraped_at
+        FROM deals
         WHERE valid_from <= ? AND valid_to >= ?
-        GROUP BY category
+        ORDER BY store_name, product_name
     """, (today, today)).fetchall()
-    cat_counts   = {(r["category"] or "__null__"): r["cnt"] for r in cat_rows}
-    null_count   = cat_counts.get("__null__", 0)
-    total_current = sum(cat_counts.values())
-    null_rate    = round(null_count / total_current * 100, 1) if total_current else 100
+    visible_deals, blocked_deals = _filter_displayable_deals(active_rows)
+
+    cat_counts = Counter((d.get("category") or "__null__") for d in visible_deals)
+    null_count = cat_counts.get("__null__", 0)
+    total_current = len(visible_deals)
+    null_rate = round(null_count / total_current * 100, 1) if total_current else 100
 
     cat_grid = [(cat, cat_counts.get(cat, 0)) for cat in ALL_CATS]
 
-    null_items_rows = cur_dq.execute("""
-        SELECT product_name, price_flyer, unit_flyer FROM deals
-        WHERE category IS NULL AND valid_from <= ? AND valid_to >= ?
-        ORDER BY product_name
-    """, (today, today)).fetchall()
-    null_items = [dict(r) for r in null_items_rows]
+    null_items = [
+        {
+            "product_name": d.get("product_name"),
+            "price_flyer": d.get("price_flyer"),
+            "unit_flyer": d.get("unit_flyer"),
+        }
+        for d in visible_deals
+        if not d.get("category")
+    ]
 
     latest_dates = cur_dq.execute("""
         SELECT valid_from, valid_to FROM deals ORDER BY valid_from DESC LIMIT 1
@@ -520,6 +599,7 @@ def admin():
                            readiness=readiness,
                            cat_grid=cat_grid,
                            null_items=null_items,
+                           blocked_deals=blocked_deals,
                            null_rate=null_rate,
                            total_current=total_current,
                            cat_active=cat_active,
@@ -530,6 +610,7 @@ def admin():
 # ── Chat agent ────────────────────────────────────────────────────────────────
 
 _chat_sessions      = {}  # session_id → [{role, content}, ...]
+_chat_lists         = {}  # session_id → shopping_list
 _session_last_active = {}  # session_id → datetime
 _SESSION_TTL_HOURS   = 2
 
@@ -538,15 +619,19 @@ def _evict_stale_sessions():
     stale = [sid for sid, t in _session_last_active.items() if t < cutoff]
     for sid in stale:
         _chat_sessions.pop(sid, None)
+        _chat_lists.pop(sid, None)
         _session_last_active.pop(sid, None)
 
 _CHAT_SYSTEM = """You are a grocery shopping assistant for families. Help users build a shopping list by assigning each item to the store with the best deal this week.
 
-This week's deals:
+Relevant deal candidates:
 {ctx}
 
 CORE BEHAVIOR:
-- Maintain a complete shopping list for this session. Every response that modifies the list must return the full list — all items, not just new ones.
+- You must choose exactly one mode per response: clarify, answer_question, or update_list.
+- In clarify mode: ask one short clarification question and DO NOT change the shopping list.
+- In answer_question mode: answer the user's follow-up question briefly and DO NOT change the shopping list.
+- In update_list mode: return the full shopping list for this session — all items, not just new ones.
 - Never change a previously added item unless the user explicitly requests it.
 - Add ALL items the user requested in one response. Never split across turns.
 - ONLY add items the user explicitly asked for. Never suggest or include extras.
@@ -558,7 +643,9 @@ MATCHING ITEMS TO DEALS:
 - Match to the quality level the user specifies. If unspecified, pick cheapest.
 - For items where no deal is found, add under store '—' with price '' and note 'no deal found this week'.
 - In the name field, use the exact product name as it appears in the flyer (e.g. "Farm Hen", not "Whole Chicken"). This helps the user find the item in-store.
-- In the note field, include savings info when available, e.g. 'save 30% · was $4.99'. If no deal matched, write 'no deal found this week'.
+- Use price only for an actual numeric price like '$8.99/ea'. Never put promo text like 'Mix & Match' in price.
+- Put promo text, savings text, or deal conditions in note. If no deal matched, write 'no deal found this week'.
+- Never return a matched store or numeric price together with 'no deal found this week'.
 
 SAVINGS:
 - Track total savings: sum of (original_price - price_flyer) or (discount_percentage x original_price) per item if applicable.
@@ -571,26 +658,237 @@ RESPONSE FORMAT:
 - Keep replies concise. Do not explain your reasoning unless asked.
 
 Respond ONLY as raw JSON (no markdown fences):
-{"reply":"...","shopping_list":[{"store":"Store Name","items":[{"name":"...","price":"...","note":"...","save_amount":0.00}]}]}"""
+{"mode":"clarify","reply":"...","shopping_list":[...]}
+or
+{"mode":"answer_question","reply":"...","shopping_list":[...]}
+or
+{"mode":"update_list","reply":"...","shopping_list":[{"store":"Store Name","items":[{"name":"...","price":"...","note":"...","save_amount":0.00}]}]}"""
 
 
-def _deals_context():
+_STOP_WORDS = {
+    "a", "an", "and", "any", "best", "buy", "deals", "for", "from", "get", "grocery",
+    "have", "i", "im", "i'm", "item", "items", "list", "looking", "me", "need", "of",
+    "on", "please", "shopping", "some", "the", "this", "to", "want", "week", "with",
+}
+
+
+def _chat_terms(text):
+    words = re.findall(r"[a-z0-9]+", (text or "").lower())
+    return [w for w in words if len(w) >= 3 and w not in _STOP_WORDS]
+
+
+def _deal_candidate_score(deal, terms):
+    haystack = " ".join(
+        str(part or "")
+        for part in [
+            deal.get("product_name"),
+            " ".join(deal.get("quality_tags") or []),
+            deal.get("category"),
+            deal.get("package_label"),
+            deal.get("deal_type"),
+            deal.get("deal_conditions"),
+        ]
+    ).lower()
+    if not terms:
+        return 0
+    score = 0
+    for term in terms:
+        if term in haystack:
+            score += 4
+        elif any(term in token for token in haystack.split()):
+            score += 2
+    if terms and deal.get("normalized_price") is not None:
+        score += 0.25
+    return score
+
+
+def _format_candidate_line(deal):
+    if deal.get("price_flyer") not in (None, 0):
+        price = f"${deal['price_flyer']:.2f}/{deal.get('unit_flyer') or 'ea'}"
+    else:
+        price = ""
+    parts = [
+        f"store={deal.get('store_name')}",
+        f"name={deal.get('product_name')}",
+    ]
+    if deal.get("package_label"):
+        parts.append(f"package={deal['package_label']}")
+    if price:
+        parts.append(f"price={price}")
+    if deal.get("deal_type"):
+        parts.append(f"promo={deal['deal_type']}")
+    if deal.get("deal_conditions"):
+        parts.append(f"conditions={deal['deal_conditions']}")
+    if deal.get("original_price"):
+        parts.append(f"orig=${deal['original_price']:.2f}")
+    return " | ".join(parts)
+
+
+def _candidate_deals_context(message, limit=36):
     rows = get_deals()
     if not rows:
         return "No active deals this week."
-    out = []
-    for d in rows:
-        deal_type = d.get("deal_type")
-        if deal_type:
-            price = deal_type
-        elif d.get("price_flyer") not in (None, 0):
-            price = f"${d['price_flyer']:.2f}/{d['unit_flyer'] or 'ea'}"
-        else:
-            price = "deal — see store"
-        orig = f" (reg ${d['original_price']:.2f})" if d.get("original_price") else ""
-        pkg  = f", {d['package_label']}" if d.get("package_label") else ""
-        out.append(f"{d['store_name']} | {d['product_name']}{pkg} | {price}{orig}")
-    return "\n".join(out)
+    terms = _chat_terms(message)
+    scored = []
+    for deal in rows:
+        score = _deal_candidate_score(deal, terms)
+        if terms and score <= 0:
+            continue
+        scored.append((score, deal.get("normalized_price") is None, deal.get("normalized_price") or 999999, deal))
+
+    if not scored:
+        scored = [(0, deal.get("normalized_price") is None, deal.get("normalized_price") or 999999, deal) for deal in rows[:limit]]
+
+    scored.sort(key=lambda item: (-item[0], item[1], item[2], item[3].get("product_name") or ""))
+    candidates = []
+    seen = set()
+    for _, _, _, deal in scored:
+        key = (
+            deal.get("store_name"),
+            deal.get("product_name"),
+            deal.get("package_label"),
+            deal.get("price_flyer"),
+            deal.get("deal_type"),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates.append(_format_candidate_line(deal))
+        if len(candidates) >= limit:
+            break
+
+    return "\n".join(candidates) if candidates else "No relevant deals found this week."
+
+
+def _chat_transcript(history):
+    lines = []
+    for msg in history:
+        role = "User" if msg.get("role") == "user" else "Assistant"
+        lines.append(f"{role}: {msg.get('content', '')}")
+    return "\n".join(lines)
+
+
+def _parse_chat_json(text):
+    clean = (text or "").strip()
+    clean = re.sub(r'^```(?:json)?\s*\n?', '', clean, flags=re.IGNORECASE)
+    clean = re.sub(r'\n?```\s*$', '', clean, flags=re.IGNORECASE).strip()
+    try:
+        return json.loads(clean)
+    except Exception:
+        m = re.search(r'\{[\s\S]*\}', clean)
+        if not m:
+            return {}
+        try:
+            return json.loads(m.group())
+        except Exception:
+            return {}
+
+
+def _looks_like_clarification(reply):
+    reply = (reply or "").strip().lower()
+    if not reply:
+        return False
+    return reply.endswith("?") or reply.startswith(("which ", "what ", "do you want", "do you mean", "is that "))
+
+
+def _looks_like_info_question(message):
+    message = (message or "").strip().lower()
+    if not message:
+        return False
+    starters = (
+        "what is", "what are", "what's", "whats", "how is", "how are",
+        "difference", "differences", "explain", "tell me about",
+    )
+    return "?" in message or any(message.startswith(prefix) for prefix in starters)
+
+
+def _sanitize_list_item(item):
+    name = str(item.get("name") or "").strip()
+    if not name:
+        return None
+
+    store = str(item.get("store") or "—").strip() or "—"
+    price = str(item.get("price") or "").strip()
+    note = str(item.get("note") or "").strip()
+    try:
+        save_amount = float(item.get("save_amount") or 0)
+    except (TypeError, ValueError):
+        save_amount = 0.0
+
+    no_deal = "no deal found this week" in note.lower()
+    if no_deal:
+        store = "—"
+        price = ""
+        save_amount = 0.0
+
+    if price and not price.startswith("$"):
+        price = ""
+
+    return {
+        "store": store,
+        "name": name,
+        "price": price,
+        "note": note,
+        "save_amount": round(save_amount, 2),
+    }
+
+
+def _normalize_shopping_list(raw_list):
+    grouped = []
+    index = {}
+    for group in raw_list or []:
+        store = str(group.get("store") or "—").strip() or "—"
+        for raw_item in group.get("items") or []:
+            item = _sanitize_list_item({**raw_item, "store": store})
+            if not item:
+                continue
+            bucket = item["store"]
+            if bucket not in index:
+                index[bucket] = len(grouped)
+                grouped.append({"store": bucket, "items": []})
+            grouped[index[bucket]]["items"].append({
+                "name": item["name"],
+                "price": item["price"],
+                "note": item["note"],
+                "save_amount": item["save_amount"],
+            })
+    return grouped
+
+
+def _validated_chat_response(parsed, previous_list):
+    reply = str(parsed.get("reply") or "").strip()
+    mode = str(parsed.get("mode") or "").strip().lower()
+    candidate_list = _normalize_shopping_list(parsed.get("shopping_list") or [])
+
+    if mode not in {"clarify", "answer_question", "update_list"}:
+        mode = "clarify" if _looks_like_clarification(reply) else "update_list"
+
+    if mode == "clarify":
+        return {
+            "mode": "clarify",
+            "reply": reply or "Which one did you mean?",
+            "shopping_list": previous_list,
+        }
+
+    if mode == "answer_question":
+        return {
+            "mode": "answer_question",
+            "reply": reply or "Here’s a quick explanation.",
+            "shopping_list": previous_list,
+        }
+
+    if _looks_like_clarification(reply):
+        return {
+            "mode": "clarify",
+            "reply": reply,
+            "shopping_list": previous_list,
+        }
+
+    return {
+        "mode": "update_list",
+        "reply": reply or "Here are the best matches I found.",
+        "shopping_list": candidate_list,
+    }
 
 
 @app.route("/api/chat", methods=["POST"])
@@ -603,40 +901,77 @@ def api_chat():
 
     _evict_stale_sessions()
     _chat_sessions.setdefault(session_id, [])
+    _chat_lists.setdefault(session_id, [])
     _session_last_active[session_id] = datetime.now()
     history = _chat_sessions[session_id]
+    previous_list = _chat_lists[session_id]
+    question_hint = _looks_like_info_question(msg)
     history.append({"role": "user", "content": msg})
 
     try:
-        from openai import OpenAI as _OAI
-        client  = _OAI(base_url="https://openrouter.ai/api/v1", api_key=os.getenv("OPENROUTER_API_KEY"))
-        msgs    = [{"role": "system", "content": _CHAT_SYSTEM.replace("{ctx}", _deals_context())}] + history
-        resp    = client.chat.completions.create(model="google/gemini-2.0-flash-001", max_tokens=2048, messages=msgs)
-        text    = resp.choices[0].message.content.strip()
+        from google import genai
+        from google.genai import types
+        from google.oauth2 import service_account
+
+        service_account_file = os.getenv("VERTEX_SERVICE_ACCOUNT_FILE")
+        project = os.getenv("GOOGLE_CLOUD_PROJECT")
+        location = os.getenv("GOOGLE_CLOUD_LOCATION", "global")
+
+        if not service_account_file:
+            raise RuntimeError("VERTEX_SERVICE_ACCOUNT_FILE not set in .env")
+        if not project:
+            raise RuntimeError("GOOGLE_CLOUD_PROJECT not set in .env")
+
+        cred_path = service_account_file
+        if not os.path.isabs(cred_path):
+            cred_path = os.path.join(os.path.dirname(__file__), cred_path)
+
+        credentials = service_account.Credentials.from_service_account_file(
+            cred_path,
+            scopes=["https://www.googleapis.com/auth/cloud-platform"],
+        )
+
+        client = genai.Client(
+            vertexai=True,
+            project=project,
+            location=location,
+            credentials=credentials,
+        )
+
+        prompt = (
+            f"Current shopping list JSON:\n{json.dumps(previous_list, ensure_ascii=False)}\n\n"
+            f"User message type hint: {'follow-up question' if question_hint else 'shopping request'}\n\n"
+            "Conversation so far:\n"
+            f"{_chat_transcript(history)}\n\n"
+            "Return the next assistant reply and the full current shopping list."
+        )
+
+        resp = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=_CHAT_SYSTEM.replace("{ctx}", _candidate_deals_context(msg)),
+                temperature=0.2,
+                maxOutputTokens=2048,
+                responseMimeType="application/json",
+                thinkingConfig=types.ThinkingConfig(thinkingBudget=0),
+            ),
+        )
+        text = (resp.text or "").strip()
     except Exception as e:
         history.pop()
         return jsonify({"error": str(e)}), 500
 
-    history.append({"role": "assistant", "content": text})
-
-    # Strip markdown fences if model ignores the prompt instruction
-    clean = text.strip()
-    clean = re.sub(r'^```(?:json)?\s*\n?', '', clean, flags=re.IGNORECASE)
-    clean = re.sub(r'\n?```\s*$', '', clean, flags=re.IGNORECASE).strip()
-
-    try:
-        parsed = json.loads(clean)
-    except Exception:
-        m = re.search(r'\{[\s\S]*\}', clean)
-        try:
-            parsed = json.loads(m.group()) if m else {}
-        except Exception:
-            parsed = {}
+    parsed = _parse_chat_json(text)
+    validated = _validated_chat_response(parsed, previous_list)
+    _chat_lists[session_id] = validated["shopping_list"]
+    history.append({"role": "assistant", "content": validated["reply"]})
 
     return jsonify({
         "session_id":    session_id,
-        "reply":         parsed.get("reply", text),
-        "shopping_list": parsed.get("shopping_list", []),
+        "mode":          validated["mode"],
+        "reply":         validated["reply"],
+        "shopping_list": validated["shopping_list"],
     })
 
 
