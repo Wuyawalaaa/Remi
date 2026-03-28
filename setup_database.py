@@ -3,6 +3,7 @@ import json
 import logging
 import os
 from datetime import datetime
+from database_utils import ensure_pipeline_schema
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "database.db")
 
@@ -30,24 +31,27 @@ def create_database():
             id                  INTEGER PRIMARY KEY AUTOINCREMENT,
             store_name          TEXT    NOT NULL,
             product_name        TEXT    NOT NULL,
-            quality_tags        TEXT,               -- JSON array string, e.g. '["Organic", "Hass"]'
-            original_price      REAL,               -- null if not shown on flyer
-            sale_price          REAL    NOT NULL,
-            unit                TEXT,               -- lb, oz, ea, gal, etc.
-            discount_amount     REAL,               -- null if not calculable
-            discount_percentage REAL,               -- null if not calculable
+            brand               TEXT,
+            quality_tags        TEXT,
+            original_price      REAL,
+            price_flyer         REAL,
+            unit_flyer          TEXT,
+            package_amount      INTEGER,
+            per_unit_volume     TEXT,
+            discount_amount     REAL,
+            discount_percentage REAL,
             valid_from          DATE    NOT NULL,
             valid_to            DATE    NOT NULL,
-            category            TEXT,               -- meat, produce, dairy, etc.
+            category            TEXT,
             scraped_at          DATETIME NOT NULL,
-            flyer_image_url     TEXT,               -- optional source URL
-            normalized_price    REAL,               -- sale_price converted to base unit
-            normalized_unit     TEXT,               -- per_lb, per_ea, per_gal, per_fl_oz
-            price_source        TEXT,               -- 'flyer' | 'google_shopping'
-            deal_type           TEXT,               -- exact deal format e.g. '2 for $5', 'Buy 1 Get 1 Free'
-            package_size        TEXT,               -- package size/variety e.g. '1-lb', '12 ct', '16 oz'
-            deal_conditions     TEXT,               -- purchase conditions e.g. 'must buy 2', 'Mix & Match eligible'
-            promotion_group_id  TEXT                -- links items sharing one promotion block
+            flyer_image_url     TEXT,
+            normalized_price    REAL,
+            unit_norm           TEXT,
+            price_source        TEXT,
+            deal_type           TEXT,
+            deal_conditions     TEXT,
+            promotion_group_id  TEXT,
+            batch_id            TEXT
         );
 
         -- Index for store-based filtering
@@ -65,6 +69,7 @@ def create_database():
 
     con.commit()
     con.close()
+    ensure_pipeline_schema()
     log.info("Database and indexes created successfully.")
 
 

@@ -10,11 +10,13 @@ from datetime import date, datetime, timedelta
 from urllib.parse import urlencode
 from flask import Flask, render_template, request, jsonify, send_file
 from dotenv import load_dotenv
+from database_utils import ensure_pipeline_schema
 
 app = Flask(__name__)
 DB_PATH = os.path.join(os.path.dirname(__file__), "database.db")
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+ensure_pipeline_schema()
 
 ALL_STORES = ["Safeway", "H Mart", "99 Ranch", "Cardenas"]
 
@@ -34,6 +36,10 @@ _BLOCKED_GENERIC_ONE_WORD = {
     "roast",
     "marinated",
 }
+
+
+def _published_batch_predicate(alias):
+    return f"EXISTS (SELECT 1 FROM batches b WHERE b.id = {alias}.batch_id AND b.status = 'published')"
 
 
 def _package_label(deal):
@@ -116,8 +122,6 @@ def get_deals(store=None, category=None):
     con.row_factory = sqlite3.Row
     cur = con.cursor()
 
-    today = date.today().isoformat()
-
     query = """
         SELECT id, store_name, product_name, quality_tags,
                original_price, price_flyer, unit_flyer,
@@ -127,9 +131,10 @@ def get_deals(store=None, category=None):
                normalized_price, unit_norm, deal_type, deal_conditions,
                promotion_group_id, price_source, flyer_image_url, scraped_at
         FROM deals
-        WHERE valid_from <= ? AND valid_to >= ?
+        WHERE {published_only}
     """
-    params = [today, today]
+    query = query.format(published_only=_published_batch_predicate("deals"))
+    params = []
 
     if store:
         query += " AND store_name = ?"
@@ -220,10 +225,8 @@ def find_page_for_product(product_name, raw_txt_path):
 def get_available_stores():
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
-    today = date.today().isoformat()
     rows = cur.execute(
-        "SELECT DISTINCT store_name FROM deals WHERE valid_from <= ? AND valid_to >= ? ORDER BY store_name",
-        (today, today)
+        f"SELECT DISTINCT store_name FROM deals WHERE {_published_batch_predicate('deals')} ORDER BY store_name"
     ).fetchall()
     con.close()
     return [r[0] for r in rows]
@@ -238,15 +241,14 @@ def index():
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     cur = con.cursor()
-    today = date.today().isoformat()
-    row = cur.execute("""
+    row = cur.execute(f"""
         SELECT * FROM deals
         WHERE original_price IS NOT NULL
           AND discount_percentage IS NOT NULL
           AND category IS NOT NULL
-          AND valid_from <= ? AND valid_to >= ?
+          AND {_published_batch_predicate('deals')}
         ORDER BY scraped_at DESC LIMIT 1
-    """, (today, today)).fetchone()
+    """).fetchone()
     con.close()
     sample = dict(row) if row else None
     if sample:
@@ -444,8 +446,9 @@ def admin():
 
         # Stage 3 – Database record (after normalization)
         row = cur.execute(
-            "SELECT price_flyer, unit_flyer, normalized_price, unit_norm "
-            "FROM deals WHERE product_name = ?",
+            f"SELECT d.price_flyer, d.unit_flyer, d.normalized_price, d.unit_norm "
+            f"FROM deals d WHERE d.product_name = ? AND {_published_batch_predicate('d')} "
+            "ORDER BY d.scraped_at DESC LIMIT 1",
             (name,)
         ).fetchone()
         first["extra"]["db"] = dict(row) if row else None
@@ -493,13 +496,11 @@ def admin():
         "pantry", "condiments", "beverages", "snacks", "prepared foods", "household",
         "personal care", "health", "baby", "alcohol", "floral",
     ]
-    today = date.today().isoformat()
-
     con_dq = sqlite3.connect(DB_PATH)
     con_dq.row_factory = sqlite3.Row
     cur_dq = con_dq.cursor()
 
-    active_rows = cur_dq.execute("""
+    active_rows = cur_dq.execute(f"""
         SELECT id, store_name, product_name, quality_tags,
                original_price, price_flyer, unit_flyer,
                package_amount, per_unit_volume,
@@ -508,9 +509,9 @@ def admin():
                normalized_price, unit_norm, deal_type, deal_conditions,
                promotion_group_id, price_source, flyer_image_url, scraped_at
         FROM deals
-        WHERE valid_from <= ? AND valid_to >= ?
+        WHERE {_published_batch_predicate('deals')}
         ORDER BY store_name, product_name
-    """, (today, today)).fetchall()
+    """).fetchall()
     visible_deals, blocked_deals = _filter_displayable_deals(active_rows)
 
     cat_counts = Counter((d.get("category") or "__null__") for d in visible_deals)
@@ -530,23 +531,80 @@ def admin():
         if not d.get("category")
     ]
 
-    latest_dates = cur_dq.execute("""
-        SELECT valid_from, valid_to FROM deals ORDER BY valid_from DESC LIMIT 1
+    latest_dates = cur_dq.execute(f"""
+        SELECT valid_from, valid_to
+        FROM deals
+        WHERE {_published_batch_predicate('deals')}
+        ORDER BY valid_to DESC, valid_from DESC
+        LIMIT 1
     """).fetchone()
+    today = date.today().isoformat()
     data_fresh = bool(latest_dates and latest_dates["valid_to"] >= today)
 
     # BOGO stats from deals JSON (pre-import state)
-    bogo_normalized = cur_dq.execute("""
+    bogo_normalized = cur_dq.execute(f"""
         SELECT COUNT(*) FROM deals
         WHERE discount_percentage = 50.0 AND unit_flyer = 'ea'
         AND original_price IS NOT NULL
-        AND valid_from <= ? AND valid_to >= ?
-    """, (today, today)).fetchone()[0]
-
-    con_dq.close()
+        AND {_published_batch_predicate('deals')}
+    """).fetchone()[0]
 
     cat_active = sum(1 for cat in ALL_CATS if cat_counts.get(cat, 0) > 0)
     core_ok    = all(cat_counts.get(c, 0) > 0 for c in ["produce", "meat", "dairy", "beverages"])
+
+    published_batches = cur_dq.execute("""
+        SELECT *
+        FROM batches
+        WHERE status = 'published'
+        ORDER BY store_name
+    """).fetchall()
+
+    ops_cards = []
+    for batch in published_batches:
+        previous = cur_dq.execute("""
+            SELECT store_name, valid_from, valid_to, row_count
+            FROM batches
+            WHERE store_name = ?
+              AND id <> ?
+            ORDER BY COALESCE(published_at, created_at) DESC
+            LIMIT 1
+        """, (batch["store_name"], batch["id"])).fetchone()
+        last_run = cur_dq.execute("""
+            SELECT step_name, status, started_at, finished_at, message
+            FROM pipeline_runs
+            WHERE store_name = ?
+            ORDER BY id DESC
+            LIMIT 1
+        """, (batch["store_name"],)).fetchone()
+        row_delta = None
+        if previous:
+            row_delta = batch["row_count"] - (previous["row_count"] or 0)
+
+        ops_cards.append({
+            "store_name": batch["store_name"],
+            "published_range": f"{batch['valid_from'] or '—'} → {batch['valid_to'] or '—'}",
+            "published_at": batch["published_at"] or batch["created_at"],
+            "row_count": batch["row_count"],
+            "warning_count": batch["warning_count"],
+            "error_count": batch["error_count"],
+            "row_delta": row_delta,
+            "previous_range": (
+                f"{previous['valid_from'] or '—'} → {previous['valid_to'] or '—'}"
+                if previous else None
+            ),
+            "last_run_step": last_run["step_name"] if last_run else None,
+            "last_run_status": last_run["status"] if last_run else "never",
+            "last_run_at": (last_run["finished_at"] or last_run["started_at"]) if last_run else None,
+            "last_run_message": last_run["message"] if last_run else None,
+        })
+
+    recent_runs = cur_dq.execute("""
+        SELECT store_name, step_name, status, started_at, finished_at, message
+        FROM pipeline_runs
+        ORDER BY id DESC
+        LIMIT 12
+    """).fetchall()
+    con_dq.close()
 
     readiness = [
         {
@@ -604,7 +662,9 @@ def admin():
                            total_current=total_current,
                            cat_active=cat_active,
                            bogo_normalized=bogo_normalized,
-                           cardenas_raw_sample=cardenas_raw_sample)
+                           cardenas_raw_sample=cardenas_raw_sample,
+                           ops_cards=ops_cards,
+                           recent_runs=recent_runs)
 
 
 # ── Chat agent ────────────────────────────────────────────────────────────────

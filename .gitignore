@@ -5,3 +5,4 @@ __pycache__/
 vertex_service_account.json
 *.db
 temp/
+logs/

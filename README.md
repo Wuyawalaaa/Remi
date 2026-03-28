@@ -22,6 +22,36 @@ python3 import_to_database.py       # load into SQLite
 python3 app.py                      # http://localhost:5000 (deals) + /admin (validation)
 ```
 
+## Weekly Scheduler
+
+Local weekly scheduling on macOS now lives in:
+
+- `scripts/run_weekly_pipeline.sh`
+- `scripts/install_launchd_job.sh`
+- `scripts/uninstall_launchd_job.sh`
+- `launchd/com.granny.weekly-pipeline.plist.template`
+
+Default schedule is Wednesday at 6:00 AM local time. Install it with:
+
+```bash
+./scripts/install_launchd_job.sh
+```
+
+Optional schedule override:
+
+```bash
+./scripts/install_launchd_job.sh --weekday 4 --hour 6 --minute 0
+```
+
+Weekday uses macOS `launchd` numbering: `1=Sunday ... 7=Saturday`.
+
+After install, logs go to:
+
+```bash
+logs/weekly_pipeline.out.log
+logs/weekly_pipeline.err.log
+```
+
 **Deps:** `flask python-dotenv pymupdf openai google-genai anthropic pillow requests`
 **OCR provider:** OpenRouter → `google/gemini-2.0-flash-001` (best results; set in `.env` as `OCR_PROVIDER=openrouter`)
 

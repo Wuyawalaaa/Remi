@@ -81,6 +81,92 @@
     .stat-value.red   { color: #d63031; }
     .stat-label { font-size: 12px; color: #6e6e73; margin-top: 6px; }
 
+    /* ── Ops dashboard ── */
+    .ops-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .ops-card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      padding: 16px;
+      border-top: 4px solid #1d1d1f;
+    }
+    .ops-card.failed { border-top-color: #d63031; }
+    .ops-card.ok { border-top-color: #1a7a1a; }
+    .ops-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .ops-store { font-size: 16px; font-weight: 700; }
+    .ops-status {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #6e6e73;
+    }
+    .ops-meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 10px;
+      font-size: 12px;
+      color: #6e6e73;
+    }
+    .ops-meta strong {
+      display: block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #a1a1a6;
+      margin-bottom: 2px;
+    }
+    .ops-delta.up { color: #1a7a1a; font-weight: 700; }
+    .ops-delta.down { color: #d63031; font-weight: 700; }
+    .ops-note {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #6e6e73;
+      border-top: 1px solid #f0f0f5;
+      padding-top: 10px;
+    }
+    .runs-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    }
+    .runs-table th,
+    .runs-table td {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 12px;
+      border-bottom: 1px solid #f0f0f5;
+      vertical-align: top;
+    }
+    .runs-table th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6e6e73;
+      background: #fafafa;
+    }
+    .run-status {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 11px;
+    }
+    .run-status.completed { color: #1a7a1a; }
+    .run-status.failed { color: #d63031; }
+
     /* ── Null items list ── */
     .null-list {
       display: grid;
@@ -284,7 +370,7 @@
 <header>
   <a href="/">← Back to site</a>
   <h1>Admin — Pipeline Health</h1>
-  <p>Safeway · {{ stats.valid_from }} → {{ stats.valid_to }} &nbsp;·&nbsp; {{ total_current }} deals active this week</p>
+  <p>Safeway · {{ stats.valid_from }} → {{ stats.valid_to }} &nbsp;·&nbsp; {{ total_current }} published deals across live store batches</p>
 </header>
 
 <main>
@@ -303,6 +389,82 @@
   </div>
 
   <!-- ── 2. Category coverage ── -->
+  <div class="section">
+    <div class="section-title">Store Operations</div>
+    <div class="ops-grid">
+      {% for card in ops_cards %}
+      <div class="ops-card {{ 'failed' if card.last_run_status == 'failed' else 'ok' }}">
+        <div class="ops-head">
+          <div class="ops-store">{{ card.store_name }}</div>
+          <div class="ops-status">{{ card.last_run_status }}</div>
+        </div>
+        <div class="ops-meta">
+          <div>
+            <strong>Published Range</strong>
+            {{ card.published_range }}
+          </div>
+          <div>
+            <strong>Published At</strong>
+            {{ card.published_at or "—" }}
+          </div>
+          <div>
+            <strong>Rows</strong>
+            {{ card.row_count }}
+            {% if card.row_delta is not none %}
+            <span class="ops-delta {{ 'up' if card.row_delta >= 0 else 'down' }}">
+              ({{ "%+d"|format(card.row_delta) }})
+            </span>
+            {% endif %}
+          </div>
+          <div>
+            <strong>Warnings / Errors</strong>
+            {{ card.warning_count }} / {{ card.error_count }}
+          </div>
+          <div>
+            <strong>Previous Batch</strong>
+            {{ card.previous_range or "—" }}
+          </div>
+          <div>
+            <strong>Last Run</strong>
+            {{ card.last_run_step or "—" }}{% if card.last_run_at %} · {{ card.last_run_at }}{% endif %}
+          </div>
+        </div>
+        {% if card.last_run_message %}
+        <div class="ops-note">{{ card.last_run_message }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if recent_runs %}
+  <div class="section">
+    <div class="section-title">Recent Pipeline Runs</div>
+    <table class="runs-table">
+      <thead>
+        <tr>
+          <th>Store</th>
+          <th>Step</th>
+          <th>Status</th>
+          <th>Finished</th>
+          <th>Message</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in recent_runs %}
+        <tr>
+          <td>{{ run.store_name }}</td>
+          <td>{{ run.step_name }}</td>
+          <td><span class="run-status {{ run.status }}">{{ run.status }}</span></td>
+          <td>{{ run.finished_at or run.started_at or "—" }}</td>
+          <td>{{ run.message or "—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
   <div class="section">
     <div class="section-title">
       Category Coverage &nbsp;

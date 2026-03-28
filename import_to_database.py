@@ -6,6 +6,14 @@ import logging
 import sqlite3
 from pathlib import Path
 from datetime import datetime
+from database_utils import (
+    ensure_pipeline_schema,
+    create_batch,
+    update_batch,
+    mark_batch_published,
+    mark_batch_failed,
+    record_pipeline_run,
+)
 
 DB_PATH    = os.path.join(os.path.dirname(__file__), "database.db")
 FLYERS_DIR = os.path.join(os.path.dirname(__file__), "flyers", "safeway")
@@ -232,11 +240,12 @@ def normalize_price(price_flyer, unit_flyer, package_amount, per_unit_volume, ca
     return round(price_flyer / total_each, 4), "ea"
 
 
-def import_deals(deals: list, store_name: str) -> dict:
+def import_deals(deals: list, store_name: str, batch_id: str | None = None) -> dict:
     """
     Import deals into the database using a single transaction.
     Returns counts: inserted, skipped, failed.
     """
+    ensure_pipeline_schema()
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
     scraped_at = datetime.now().isoformat()
@@ -244,6 +253,7 @@ def import_deals(deals: list, store_name: str) -> dict:
     inserted = 0
     skipped  = 0
     failed   = 0
+    warnings = 0
 
     try:
         for deal in deals:
@@ -262,6 +272,7 @@ def import_deals(deals: list, store_name: str) -> dict:
                 if norm_price is None:
                     name = deal.get("product_name") or deal.get("product")
                     log.warning(f"[NO NORM PRICE] {name} | unit_flyer={unit_flyer!r} | price_flyer={price_flyer} | per_unit_volume={per_unit_volume!r} | category={category!r}")
+                    warnings += 1
 
                 # discount: compare total original vs price_flyer
                 if original_price is not None and price_flyer is not None:
@@ -284,8 +295,8 @@ def import_deals(deals: list, store_name: str) -> dict:
                         scraped_at, flyer_image_url,
                         normalized_price, unit_norm,
                         price_source, deal_type,
-                        deal_conditions, promotion_group_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        deal_conditions, promotion_group_id, batch_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(product_name, store_name, valid_from) DO UPDATE SET
                         brand               = excluded.brand,
                         quality_tags        = excluded.quality_tags,
@@ -304,7 +315,8 @@ def import_deals(deals: list, store_name: str) -> dict:
                         price_source        = excluded.price_source,
                         deal_type           = excluded.deal_type,
                         deal_conditions     = excluded.deal_conditions,
-                        promotion_group_id  = excluded.promotion_group_id
+                        promotion_group_id  = excluded.promotion_group_id,
+                        batch_id            = excluded.batch_id
                 """, (
                     store_name,
                     deal.get("product_name"),
@@ -328,6 +340,7 @@ def import_deals(deals: list, store_name: str) -> dict:
                     deal.get("deal_type"),
                     deal.get("deal_conditions"),
                     deal.get("promotion_group_id"),
+                    batch_id,
                 ))
                 inserted += 1
 
@@ -340,7 +353,7 @@ def import_deals(deals: list, store_name: str) -> dict:
                 log.warning(f"Failed to insert '{deal.get('product_name')}': {e}")
 
         con.commit()
-        log.info(f"Transaction committed: {inserted} inserted, {skipped} skipped, {failed} failed")
+        log.info(f"Transaction committed: {inserted} inserted, {skipped} skipped, {failed} failed, {warnings} warnings")
 
     except Exception as e:
         con.rollback()
@@ -350,10 +363,11 @@ def import_deals(deals: list, store_name: str) -> dict:
     finally:
         con.close()
 
-    return {"inserted": inserted, "skipped": skipped, "failed": failed}
+    return {"inserted": inserted, "skipped": skipped, "failed": failed, "warnings": warnings}
 
 
-def run_one(json_path):
+def run_one(json_path, batch_id=None, auto_publish=True):
+    ensure_pipeline_schema()
     log.info(f"Loading: {json_path}")
 
     with open(json_path, encoding="utf-8") as f:
@@ -361,23 +375,94 @@ def run_one(json_path):
 
     store_name = data.get("store", "Unknown")
     deals      = data.get("deals", [])
+    valid_from = data.get("valid_from")
+    valid_to   = data.get("valid_to")
     log.info(f"Found {len(deals)} deals for {store_name}")
 
-    counts = import_deals(deals, store_name)
+    if not batch_id:
+        batch_id = create_batch(
+            store_name=store_name,
+            valid_from=valid_from,
+            valid_to=valid_to,
+            source_flyer_path=json_path,
+        )
+    else:
+        update_batch(
+            batch_id,
+            valid_from=valid_from,
+            valid_to=valid_to,
+            source_flyer_path=json_path,
+        )
+
+    started_at = datetime.now().isoformat()
+    try:
+        counts = import_deals(deals, store_name, batch_id=batch_id)
+    except Exception as exc:
+        record_pipeline_run(
+            batch_id=batch_id,
+            store_name=store_name,
+            step_name="import",
+            status="failed",
+            started_at=started_at,
+            finished_at=datetime.now().isoformat(),
+            message=str(exc),
+        )
+        mark_batch_failed(batch_id, message=str(exc))
+        raise
+
+    update_batch(
+        batch_id,
+        row_count=counts["inserted"],
+        warning_count=counts["warnings"],
+        error_count=counts["failed"],
+    )
+    record_pipeline_run(
+        batch_id=batch_id,
+        store_name=store_name,
+        step_name="import",
+        status="completed",
+        started_at=started_at,
+        finished_at=datetime.now().isoformat(),
+        message=f"inserted={counts['inserted']} warnings={counts['warnings']} failed={counts['failed']}",
+    )
+    if auto_publish:
+        mark_batch_published(
+            batch_id,
+            row_count=counts["inserted"],
+            warning_count=counts["warnings"],
+            error_count=counts["failed"],
+        )
 
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
-    total = cur.execute("SELECT COUNT(*) FROM deals WHERE store_name=?", (store_name,)).fetchone()[0]
+    total = cur.execute(
+        """
+        SELECT COUNT(*)
+        FROM deals d
+        JOIN batches b ON b.id = d.batch_id
+        WHERE d.store_name = ? AND b.status = 'published'
+        """,
+        (store_name,),
+    ).fetchone()[0]
     by_category = cur.execute(
-        "SELECT category, COUNT(*) FROM deals WHERE store_name=? GROUP BY category ORDER BY COUNT(*) DESC",
+        """
+        SELECT d.category, COUNT(*)
+        FROM deals d
+        JOIN batches b ON b.id = d.batch_id
+        WHERE d.store_name = ? AND b.status = 'published'
+        GROUP BY d.category
+        ORDER BY COUNT(*) DESC
+        """,
         (store_name,)
     ).fetchall()
     con.close()
 
     print(f"\n=== {store_name} ===")
+    print(f"Batch ID:  {batch_id}")
     print(f"Inserted:  {counts['inserted']}")
     print(f"Skipped:   {counts['skipped']}  (duplicates)")
     print(f"Failed:    {counts['failed']}")
+    print(f"Warnings:  {counts['warnings']}")
     print(f"Total in DB: {total}")
     print(f"By category:")
     for cat, count in by_category:
