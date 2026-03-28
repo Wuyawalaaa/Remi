@@ -1,8 +1,10 @@
 .DS_Store
 __pycache__/
 *.pyc
+.venv/
 .env
 vertex_service_account.json
 *.db
+flyers/
 temp/
 logs/

@@ -4,9 +4,12 @@ import logging
 import requests
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from dotenv import load_dotenv
 
-FLIPP_ACCESS_TOKEN = "7749fa974b9869e8f57606ac9477decf"
-POSTAL_CODE = "94086"
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
+FLIPP_ACCESS_TOKEN = os.getenv("FLIPP_ACCESS_TOKEN")
+POSTAL_CODE = os.getenv("FLIPP_POSTAL_CODE", "94086")
 FLYERS_DIR = os.path.join(os.path.dirname(__file__), "flyers", "safeway")
 FLIPP_DATA_DIR = os.path.join(os.path.dirname(__file__), "flyers", "safeway", "flipp_data")
 
@@ -24,6 +27,9 @@ log = logging.getLogger(__name__)
 
 def get_current_publication():
     """Fetch the current Safeway weekly ad publication from Flipp API."""
+    if not FLIPP_ACCESS_TOKEN:
+        raise RuntimeError("FLIPP_ACCESS_TOKEN not set in .env")
+
     url = (
         f"https://api.flipp.com/flyerkit/v4.0/publications/safeway"
         f"?access_token={FLIPP_ACCESS_TOKEN}"

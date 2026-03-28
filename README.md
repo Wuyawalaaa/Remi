@@ -1,151 +1,168 @@
 # Granny
 
-Bay Area grocery optimizer. Cross-store deal aggregation → multi-store route optimization → personalized shopping list. Target user: Bay Area Chinese-American families.
+Granny is a Bay Area grocery-deals and shopping-planning project. This repository currently implements the deal ingestion pipeline, published-batch data model, local Flask app, admin operations dashboard, and local weekly scheduler.
 
-**Current stage:** Infra ~70% done. Deal pipeline works (Safeway primary, 97.6% OCR accuracy). Routing algo and conversation layer not started.
-**PRD:** `~/Desktop/Granny_PRD_v6.md` — read before working on algo or V0+.
+## Scope Of This Repo
 
----
+The broader product vision for Granny is larger than the code currently in this repository. The long-term vision includes route optimization, personalized shopping lists, and later pantry and meal-planning behavior.
 
-## Run
+Use this repository README as the source of truth for:
+- what works in the current codebase
+- how to run it locally
+- how the pipeline and publish model work
+
+Use [docs/prd-v0.md](docs/prd-v0.md) as the current milestone PRD for GitHub collaborators.
+Use [CONTRIBUTING.md](CONTRIBUTING.md) for collaborator workflow expectations.
+
+## What Works Today
+
+- multi-store flyer ingestion for Safeway, H Mart, 99 Ranch, and Cardenas
+- OCR/parsing and normalized deal import into SQLite
+- published-batch model that keeps the last successful data live if a new run fails
+- local Flask app with deal browser
+- `/admin` operations dashboard
+- chat-based shopping assistant prototype
+- local weekly scheduling on macOS via `launchd`
+
+## Not Yet Implemented
+
+- route pre-computation and route optimization from the full PRD
+- Google Shopping fallback for non-promoted items
+- full conversation/batch-confirmation architecture
+- production auth and hosted deployment
+- pantry-aware or meal-planning features
+
+## Repository Layout
+
+- `app.py` — Flask app and API routes
+- `database_utils.py` — batch schema, publish helpers, pipeline run tracking
+- `run_weekly_pipeline.py` — top-level orchestrator
+- `import_to_database.py` — deal import and auto-publish flow
+- `download_*_flyer.py` — store-specific flyer acquisition
+- `ocr_*_flyer.py` — OCR where applicable
+- `parse_*_deals.py` — normalization and parsing logic
+- `templates/` — server-rendered HTML
+- `static/` — frontend assets
+- `docs/` — project docs and current-scope PRD
+- `scripts/` — helper scripts including scheduler install/uninstall
+- `launchd/` — macOS scheduler template
+
+## Setup
+
+### Requirements
+
+- Python 3.13 recommended
+- macOS if you want to use the built-in `launchd` scheduler scripts
+
+Install dependencies:
 
 ```bash
-# Full pipeline (weekly, after flyer updates):
-python3 download_safeway_flyer.py   # fetch PDF + Flipp ground truth
-python3 ocr_safeway_flyer.py        # vision LLM → JSON per page (~90s)
-python3 parse_safeway_deals.py      # enrich + validate JSON
-python3 import_to_database.py       # load into SQLite
-
-# Other stores (scripts exist, same pattern):
-# download/ocr/parse: hmart, 99ranch, cardenas
-
-python3 app.py                      # http://localhost:5000 (deals) + /admin (validation)
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-## Weekly Scheduler
+### Environment
 
-Local weekly scheduling on macOS now lives in:
+Copy `.env.example` to `.env` and fill in the values you need.
+
+Important variables:
+
+- `OCR_PROVIDER`
+- `VERTEX_SERVICE_ACCOUNT_FILE`
+- `GOOGLE_CLOUD_PROJECT`
+- `GOOGLE_CLOUD_LOCATION`
+- provider API keys such as `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`
+- `FLIPP_ACCESS_TOKEN`
+- `FLIPP_POSTAL_CODE`
+- `CARDENAS_STORE_CODE`
+
+Do not commit `.env`, service account JSON files, databases, logs, or generated flyer artifacts.
+
+## Running The App
+
+```bash
+python3 app.py
+```
+
+Open:
+
+- `http://localhost:8080/`
+- `http://localhost:8080/admin`
+
+## Running The Weekly Pipeline
+
+Run the whole pipeline:
+
+```bash
+python3 run_weekly_pipeline.py
+```
+
+Run a single store import after parsing:
+
+```bash
+python3 import_to_database.py safeway
+python3 import_to_database.py hmart
+python3 import_to_database.py 99ranch
+python3 import_to_database.py cardenas
+```
+
+## Publish Model
+
+The app uses a batch-based publish model.
+
+- each import run belongs to a batch
+- only `published` batches are served by the app
+- a successful run auto-publishes
+- if a run fails, the previous published batch remains live
+- pipeline step history is recorded in `pipeline_runs`
+
+This is the main reliability mechanism for weekly automation.
+
+## Scheduler
+
+Local macOS scheduling files:
 
 - `scripts/run_weekly_pipeline.sh`
 - `scripts/install_launchd_job.sh`
 - `scripts/uninstall_launchd_job.sh`
 - `launchd/com.granny.weekly-pipeline.plist.template`
 
-Default schedule is Wednesday at 6:00 AM local time. Install it with:
+Install the default scheduler:
 
 ```bash
 ./scripts/install_launchd_job.sh
 ```
 
-Optional schedule override:
+Default schedule is Wednesday at 6:00 AM local time.
 
-```bash
-./scripts/install_launchd_job.sh --weekday 4 --hour 6 --minute 0
-```
+Current behavior:
 
-Weekday uses macOS `launchd` numbering: `1=Sunday ... 7=Saturday`.
+- one shared weekly scheduler runs the full pipeline for all supported stores
+- it is not yet a true per-store cadence scheduler
+- current automatic run time for Safeway, H Mart, 99 Ranch, and Cardenas is the same shared Wednesday 6:00 AM job
 
-After install, logs go to:
+Logs:
 
 ```bash
 logs/weekly_pipeline.out.log
 logs/weekly_pipeline.err.log
 ```
 
-**Deps:** `flask python-dotenv pymupdf openai google-genai anthropic pillow requests`
-**OCR provider:** OpenRouter → `google/gemini-2.0-flash-001` (best results; set in `.env` as `OCR_PROVIDER=openrouter`)
+## Collaboration Notes
 
----
+- This repo is intended to be code-and-docs only.
+- Generated flyer outputs, temp images, logs, and local databases should stay out of git.
+- If README and older notes disagree, trust the current code and this README.
+- The current milestone for collaborators is documented in [docs/prd-v0.md](docs/prd-v0.md).
+- The ingestion automation design lives in [docs/design/weekly-ingestion-automation-design.md](docs/design/weekly-ingestion-automation-design.md).
+- The early product pitch lives in [docs/vision/grocery-deal-proposal.md](docs/vision/grocery-deal-proposal.md).
 
-## File Map
+## Current Priorities
 
-| File | Purpose |
-|------|---------|
-| `download_safeway_flyer.py` | Flipp API → PDF + ground truth JSON. Idempotent. |
-| `ocr_safeway_flyer.py` | PDF pages → PNG → vision LLM → `_raw.txt` (JSON per page) |
-| `parse_safeway_deals.py` | `_raw.txt` → `_deals.json`. Normalizes price labels, computes discounts. |
-| `import_to_database.py` | `_deals.json` → `database.db`. Normalizes units (oz→per_lb, etc). |
-| `setup_database.py` | Creates schema. **Bug:** missing `price_label` in CREATE TABLE — run ALTER after. |
-| `app.py` | Flask server. `/` deal browser, `/admin` validation dashboard. |
-| `static/script.js` | Vanilla JS. Chip filters → `/api/deals` → render cards. |
-| `0222.md` | Detailed project memory (decisions, architecture rationale). |
-| `grocery-deal-proposal.md` | Original pitch (Chinese). Vision + monetization strategy. |
-
-**Data layout:**
-```
-flyers/safeway/
-  safeway_YYYY-MM-DD.pdf
-  safeway_YYYY-MM-DD_raw.txt       ← OCR output, --- PAGE N --- markers
-  safeway_YYYY-MM-DD_deals.json    ← ~196 items
-  flipp_data/safeway_flipp_YYYY-MM-DD.json
-temp/safeway_pages/page_NN.png     ← intermediate (2.0x res)
-database.db                        ← SQLite, all stores
-```
-
----
-
-## DB Schema (table: `deals`)
-
-`id, store_name, product_name, quality_tags (JSON), original_price, sale_price, unit, discount_amount, discount_percentage, valid_from, valid_to, category, scraped_at, flyer_image_url, normalized_price, normalized_unit, price_label`
-
-Unique constraint: `(product_name, store_name, valid_from)`. Units normalize to: `per_lb / per_ea / per_gal / per_fl_oz`.
-
----
-
-## Known Issues
-
-| Issue | Fix needed |
-|-------|-----------|
-| `price_label` missing from `setup_database.py` CREATE TABLE | Add column; workaround: `ALTER TABLE deals ADD COLUMN price_label TEXT` |
-| Flipp token + postal code hardcoded in `download_safeway_flyer.py` | Move to `.env` |
-| OCR category field not normalized (model invents values) | Add fixed category list to `OCR_PROMPT` |
-| No auth on `/admin` | Fine for local; add before any deployment |
-
----
-
-## What's Left (Infra → V0)
-
-- [ ] Fix `setup_database.py` schema (add `price_label`)
-- [ ] Add fixed category list to OCR prompt
-- [ ] Move hardcoded Flipp token to `.env`
-- [ ] More stores: Costco, Whole Foods (different flyer formats)
-- [ ] **Stage 1 route pre-computation** (Google Maps API, enumerate store combos) — P1 in PRD
-- [ ] **Stage 2 session scoring** (cheapest store per item across route) — P8 in PRD
-- [ ] **Stage 3 LLM optimization pass** (final list selection) — P9 in PRD
-- [ ] V0: 10 test personas, email capture UI
-- [ ] Historical price benchmarks (`item_price_history` table)
-
----
-
-## Key Decisions (don't re-litigate)
-
-- **OCR outputs structured JSON directly** (not raw text): fixes spatial price-product pairing in grid layouts. Raw-text approach failed because vision models read linearly.
-- **"799" = $7.99**: grocery flyer convention (no decimal point). Breaks for non-grocery stores — use separate `OCR_PROMPT` per store type if adding appliances etc.
-- **OpenRouter Gemini 2.0 Flash**: DeepSeek vision not publicly available; Novita DeepSeek-OCR-2 endpoint broken; local vLLM needs CUDA (unavailable on M3 Pro).
-
----
-
-## Session Handoff
-
-**At the end of each work session, update this file:**
-- Move completed items out of "What's Left"
-- Add any new known issues discovered
-- Note current stage and any in-progress work
-- Keep it concise — this file is for agents, not humans
-
-_Last updated: 2026-03-18. Stage: Infra pipeline working + chat agent layer added. Routing algo not started._
-
-## Chat Agent Layer (added 2026-03-18)
-
-Temporary middle layer to test the deal pipeline's core value. Not V0 — no personas, no route, no auth.
-
-**What it does:** User chats with an LLM in the web panel. Agent knows all active deals from the DB and helps the user decide where to buy each item. Outputs a shopping list grouped by store. User can keep chatting to modify it.
-
-**New endpoint:** `POST /api/chat` — body: `{message, session_id}` → response: `{reply, shopping_list, session_id}`
-- Session history stored in-memory (`_chat_sessions` dict in `app.py`)
-- Session ID persisted in `localStorage` on frontend
-- Model: `claude-sonnet-4-6` via Anthropic SDK
-- Deals context injected fresh on every turn from `get_deals()`
-- "Clear" button resets session
-
-**Files changed:** `app.py` (added `/api/chat`, `_deals_context()`, `_CHAT_SYSTEM`), `templates/index.html` (two-column layout), `static/script.js` (chat UI logic), `static/style.css` (layout + chat styles)
+- build the `item_price_history` database
+- recompute historical price benchmarks on each pipeline run
+- define observation thresholds and benchmark rules for price history
+- improve automatic validation before publish
+- make store refresh detection smarter
+- build the actual optimization engine described in the broader product vision

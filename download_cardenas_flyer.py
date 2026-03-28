@@ -3,12 +3,15 @@ import json
 import logging
 import requests
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 
 STORE_NAME   = "Cardenas"
 FLIPP_SLUG   = "cardenas"
-ACCESS_TOKEN = "0f5c3d7bf6e60e86eec604efa4c2ac19"
-POSTAL_CODE  = "94086"
-STORE_CODE   = "215"          # East Palo Alto — nearest NorCal Cardenas
+ACCESS_TOKEN = os.getenv("FLIPP_ACCESS_TOKEN")
+POSTAL_CODE  = os.getenv("FLIPP_POSTAL_CODE", "94086")
+STORE_CODE   = os.getenv("CARDENAS_STORE_CODE", "215")  # East Palo Alto — nearest NorCal Cardenas
 FLYERS_DIR   = os.path.join(os.path.dirname(__file__), "flyers", "cardenas")
 
 BASE_URL = "https://dam.flippenterprise.net/flyerkit"
@@ -24,6 +27,9 @@ log = logging.getLogger(__name__)
 
 def get_current_publication():
     """Fetch current Cardenas publication from Flipp API."""
+    if not ACCESS_TOKEN:
+        raise RuntimeError("FLIPP_ACCESS_TOKEN not set in .env")
+
     url = (
         f"{BASE_URL}/publications/{FLIPP_SLUG}"
         f"?languages[]=en&locale=en"
