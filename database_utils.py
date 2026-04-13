@@ -58,11 +58,48 @@ def ensure_pipeline_schema():
         )
     """)
 
-    if _table_exists(cur, "deals") and not _column_exists(cur, "deals", "batch_id"):
+    # Create deals table if it does not exist yet. This can happen when the
+    # database file was created by app startup (which only calls this function)
+    # before setup_database.py was ever run.
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS deals (
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            store_name          TEXT    NOT NULL,
+            product_name        TEXT    NOT NULL,
+            brand               TEXT,
+            quality_tags        TEXT,
+            original_price      REAL,
+            price_flyer         REAL,
+            unit_flyer          TEXT,
+            package_amount      INTEGER,
+            per_unit_volume     TEXT,
+            discount_amount     REAL,
+            discount_percentage REAL,
+            valid_from          DATE    NOT NULL,
+            valid_to            DATE    NOT NULL,
+            category            TEXT,
+            scraped_at          DATETIME NOT NULL,
+            flyer_image_url     TEXT,
+            normalized_price    REAL,
+            unit_norm           TEXT,
+            price_source        TEXT,
+            deal_type           TEXT,
+            deal_conditions     TEXT,
+            promotion_group_id  TEXT,
+            batch_id            TEXT
+        )
+    """)
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_store ON deals(store_name)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_category ON deals(category)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_valid_dates ON deals(valid_from, valid_to)")
+    cur.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_dedup ON deals(product_name, store_name, valid_from)
+    """)
+
+    if not _column_exists(cur, "deals", "batch_id"):
         cur.execute("ALTER TABLE deals ADD COLUMN batch_id TEXT")
 
-    if _table_exists(cur, "deals"):
-        cur.execute("CREATE INDEX IF NOT EXISTS idx_deals_batch_id ON deals(batch_id)")
+    cur.execute("CREATE INDEX IF NOT EXISTS idx_deals_batch_id ON deals(batch_id)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_batches_store_status ON batches(store_name, status)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_pipeline_runs_batch_id ON pipeline_runs(batch_id)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_pipeline_runs_store_step ON pipeline_runs(store_name, step_name)")
@@ -160,6 +197,9 @@ def create_batch(store_name, valid_from=None, valid_to=None, source_flyer_path=N
     ensure_pipeline_schema()
     batch_id = str(uuid.uuid4())
     created_at = datetime.now().isoformat()
+    # SQLite does not accept Path objects; coerce to str
+    if source_flyer_path is not None:
+        source_flyer_path = str(source_flyer_path)
     con = get_connection()
     cur = con.cursor()
     cur.execute("""
@@ -181,7 +221,8 @@ def update_batch(batch_id, **fields):
     values = []
     for key, value in fields.items():
         assignments.append(f"{key} = ?")
-        values.append(value)
+        # SQLite does not accept Path objects; coerce to str
+        values.append(str(value) if hasattr(value, "__fspath__") else value)
     values.append(batch_id)
 
     con = get_connection()

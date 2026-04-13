@@ -21,9 +21,9 @@ STORE_PIPELINES = {
         "python3 parse_hmart_deals.py",
         "python3 import_to_database.py hmart",
     ],
+    # 99 Ranch fetches structured JSON directly from the API, no OCR step needed
     "99ranch": [
         "python3 download_99ranch_flyer.py",
-        "python3 ocr_99ranch_flyer.py",
         "python3 parse_99ranch_deals.py",
         "python3 import_to_database.py 99ranch",
     ],
