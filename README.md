@@ -24,6 +24,17 @@ Use [CONTRIBUTING.md](CONTRIBUTING.md) for collaborator workflow expectations.
 - chat-based shopping assistant prototype
 - local weekly scheduling on macOS via `launchd`
 
+### Store-by-store status
+
+| Store | Download method | Requires | OCR |
+|---|---|---|---|
+| H Mart | Playwright (browser automation) | — | Yes (image flyer) |
+| 99 Ranch | Direct API (JSON) | — | No |
+| Safeway | Flipp API | `FLIPP_ACCESS_TOKEN` | Yes (PDF flyer) |
+| Cardenas | Flipp API | `FLIPP_ACCESS_TOKEN` | No |
+
+H Mart and 99 Ranch work out of the box. Safeway and Cardenas require a Flipp API token (not publicly available) and will fail at the download step without it — this does not affect the other two stores.
+
 ## Not Yet Implemented
 
 - route pre-computation and route optimization from the full PRD
@@ -60,52 +71,82 @@ Install dependencies:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+python -m playwright install chromium
 ```
+
+> `python -m playwright install chromium` is required for store flyer downloads that use browser automation (H Mart and 99 Ranch). Run it once after setting up the virtual environment. Using `python -m playwright` (instead of the bare `playwright` command) ensures the correct browser build for the active virtual environment is installed.
 
 ### Environment
 
 Copy `.env.example` to `.env` and fill in the values you need.
 
-Important variables:
+#### OCR provider (required — pick one)
 
-- `OCR_PROVIDER`
-- `VERTEX_SERVICE_ACCOUNT_FILE`
-- `GOOGLE_CLOUD_PROJECT`
-- `GOOGLE_CLOUD_LOCATION`
-- provider API keys such as `OPENROUTER_API_KEY`, `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`
-- `FLIPP_ACCESS_TOKEN`
-- `FLIPP_POSTAL_CODE`
-- `CARDENAS_STORE_CODE`
+`OCR_PROVIDER` selects which vision model is used to read flyer images. Set exactly one of the following:
+
+| `OCR_PROVIDER` value | Key required | Notes |
+|---|---|---|
+| `gemini` | `GEMINI_API_KEY` | Easiest Google option, no service account needed |
+| `openai` | `OPENAI_API_KEY` | GPT-4o |
+| `anthropic` | `ANTHROPIC_API_KEY` | Claude |
+| `openrouter` | `OPENROUTER_API_KEY` | Proxy — uses `google/gemini-2.0-flash-001` by default |
+| `deepseek` | `DEEPSEEK_API_KEY` | DeepSeek VL2 |
+| `novita` | `NOVITA_API_KEY` | DeepSeek OCR-2 via Novita |
+| `vertex` | `VERTEX_SERVICE_ACCOUNT_FILE` + `GOOGLE_CLOUD_PROJECT` | Default in `.env.example`; requires a GCP service account JSON file |
+
+> Only stores that download image flyers (H Mart, Safeway) consume OCR credits. 99 Ranch uses a direct JSON API and does not call the OCR provider.
+
+#### Other variables
+
+- `FLIPP_POSTAL_CODE` — zip code for Flipp flyer lookup (default: `94086`)
+- `FLIPP_ACCESS_TOKEN` — required only for Safeway and Cardenas (not publicly available)
+- `CARDENAS_STORE_CODE` — Cardenas store number (default: `215`)
 
 Do not commit `.env`, service account JSON files, databases, logs, or generated flyer artifacts.
 
-## Running The App
+## First-Time Usage
+
+**Always run the pipeline before starting the app.** The app reads from the database; if you start it before any data has been imported, every page will error with `no such table: deals` or return empty results.
 
 ```bash
+# Step 1 — ingest data for the stores you have access to
+python3 run_weekly_pipeline.py
+
+# Step 2 — start the web app
 python3 app.py
 ```
 
 Open:
 
-- `http://localhost:8080/`
-- `http://localhost:8080/admin`
+- `http://localhost:8080/` — deal browser
+- `http://localhost:8080/admin` — operations dashboard
 
-## Running The Weekly Pipeline
-
-Run the whole pipeline:
+### Running a single store
 
 ```bash
-python3 run_weekly_pipeline.py
+python3 run_weekly_pipeline.py hmart
+python3 run_weekly_pipeline.py 99ranch
 ```
 
-Run a single store import after parsing:
+### Re-importing after a parse fix (skip download and OCR)
 
 ```bash
-python3 import_to_database.py safeway
 python3 import_to_database.py hmart
 python3 import_to_database.py 99ranch
-python3 import_to_database.py cardenas
 ```
+
+### Pipeline stages per store
+
+Each store runs through up to four stages in order. A failure at any stage stops that store and moves on to the next.
+
+| Stage | H Mart | 99 Ranch | Safeway | Cardenas |
+|---|---|---|---|---|
+| Download | Playwright scrape | Direct API | Flipp API ⚠️ | Flipp API ⚠️ |
+| OCR | Yes (image) | — (skipped) | Yes (PDF) | — |
+| Parse | Yes | Yes | Yes | Yes |
+| Import | Yes | Yes | Yes | Yes |
+
+⚠️ Requires `FLIPP_ACCESS_TOKEN`. The store is skipped if the token is missing; other stores continue normally.
 
 ## Publish Model
 

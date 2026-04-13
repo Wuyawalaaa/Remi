@@ -8,3 +8,4 @@ vertex_service_account.json
 flyers/
 temp/
 logs/
+.cursor/
