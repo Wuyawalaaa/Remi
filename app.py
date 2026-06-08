@@ -270,35 +270,6 @@ def api_deals():
     return jsonify(deals)
 
 
-@app.route("/api/deal-crop")
-def deal_crop():
-    """Render a full PDF page as JPEG. The page is identified by the OCR text search."""
-    import fitz
-    import io
-
-    try:
-        page_num = int(request.args.get("page", 1))
-    except ValueError:
-        page_num = 1
-
-    base      = os.path.dirname(__file__)
-    pdf_files = sorted(glob.glob(f"{base}/flyers/safeway/*.pdf"), reverse=True)
-    if not pdf_files:
-        return "No PDF found", 404
-
-    doc      = fitz.open(pdf_files[0])
-    page_num = max(1, min(page_num, len(doc)))
-    page     = doc[page_num - 1]
-
-    # Render at 1.3x — large enough to read text, keeps file size reasonable
-    pix = page.get_pixmap(matrix=fitz.Matrix(1.3, 1.3))
-    doc.close()
-
-    img_bytes = io.BytesIO(pix.tobytes("jpeg", jpg_quality=72))
-    return send_file(img_bytes, mimetype="image/jpeg",
-                     max_age=3600, as_attachment=False)
-
-
 @app.route("/admin")
 def admin():
     base = os.path.dirname(__file__)

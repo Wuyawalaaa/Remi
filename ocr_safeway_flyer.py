@@ -320,36 +320,6 @@ def ocr_with_openrouter(image_bytes: bytes, page_num: int, prompt: str = OCR_PRO
     return response.choices[0].message.content
 
 
-def ocr_with_novita(image_bytes: bytes, page_num: int, prompt: str = OCR_PROMPT) -> str:
-    import io
-
-    from openai import OpenAI
-    from PIL import Image
-
-    api_key = os.getenv("NOVITA_API_KEY")
-    if not api_key:
-        raise RuntimeError("NOVITA_API_KEY not set in .env")
-
-    img = Image.open(io.BytesIO(image_bytes))
-    buf = io.BytesIO()
-    img.save(buf, format="JPEG", quality=70)
-    b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
-
-    client = OpenAI(api_key=api_key, base_url="https://api.novita.ai/openai")
-    response = client.chat.completions.create(
-        model="deepseek/deepseek-ocr-2",
-        messages=[{
-            "role": "user",
-            "content": [
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
-                {"type": "text", "text": "<|grounding|>Convert the document to markdown."},
-            ],
-        }],
-        max_tokens=8000,
-    )
-    return response.choices[0].message.content
-
-
 PROVIDERS = {
     "gemini": ocr_with_gemini,
     "vertex": ocr_with_vertex,
@@ -357,7 +327,6 @@ PROVIDERS = {
     "openai": ocr_with_openai,
     "anthropic": ocr_with_anthropic,
     "openrouter": ocr_with_openrouter,
-    "novita": ocr_with_novita,
 }
 
 

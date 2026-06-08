@@ -384,14 +384,14 @@ def run_one(json_path, batch_id=None, auto_publish=True):
             store_name=store_name,
             valid_from=valid_from,
             valid_to=valid_to,
-            source_flyer_path=json_path,
+            source_flyer_path=str(json_path),
         )
     else:
         update_batch(
             batch_id,
             valid_from=valid_from,
             valid_to=valid_to,
-            source_flyer_path=json_path,
+            source_flyer_path=str(json_path),
         )
 
     started_at = datetime.now().isoformat()

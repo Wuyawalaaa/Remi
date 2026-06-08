@@ -7,30 +7,32 @@ from datetime import datetime
 from database_utils import ensure_pipeline_schema, record_pipeline_run
 
 BASE_DIR = os.path.dirname(__file__)
+PYTHON = sys.executable   # use the same interpreter as the parent, so launchd's stripped PATH doesn't matter
 
 STORE_PIPELINES = {
     "safeway": [
-        "python3 download_safeway_flyer.py",
-        "python3 ocr_safeway_flyer.py",
-        "python3 parse_safeway_deals.py",
-        "python3 import_to_database.py safeway",
+        f"{PYTHON} download_safeway_flyer.py",
+        f"{PYTHON} ocr_safeway_flyer.py",
+        f"{PYTHON} parse_safeway_deals.py",
+        f"{PYTHON} import_to_database.py safeway",
     ],
     "hmart": [
-        "python3 download_hmart_flyer.py",
-        "python3 ocr_hmart_flyer.py",
-        "python3 parse_hmart_deals.py",
-        "python3 import_to_database.py hmart",
+        f"{PYTHON} download_hmart_flyer.py",
+        f"{PYTHON} ocr_hmart_flyer.py",
+        f"{PYTHON} parse_hmart_deals.py",
+        f"{PYTHON} import_to_database.py hmart",
     ],
     "99ranch": [
-        "python3 download_99ranch_flyer.py",
-        "python3 ocr_99ranch_flyer.py",
-        "python3 parse_99ranch_deals.py",
-        "python3 import_to_database.py 99ranch",
+        f"{PYTHON} download_99ranch_flyer.py",
+        # OCR step removed: 99 Ranch data is structured JSON from the API; parse_99ranch_deals.py
+        # reads the raw.json directly and does not consume OCR output.
+        f"{PYTHON} parse_99ranch_deals.py",
+        f"{PYTHON} import_to_database.py 99ranch",
     ],
     "cardenas": [
-        "python3 download_cardenas_flyer.py",
-        "python3 parse_cardenas_deals.py",
-        "python3 import_to_database.py cardenas",
+        f"{PYTHON} download_cardenas_flyer.py",
+        f"{PYTHON} parse_cardenas_deals.py",
+        f"{PYTHON} import_to_database.py cardenas",
     ],
 }
 

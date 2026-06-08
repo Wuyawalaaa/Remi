@@ -53,10 +53,13 @@ def get_flyer_info():
     if not image_url:
         raise RuntimeError("Could not find weekly ad image URL on H Mart page")
 
-    # Extract date range, e.g. "MAR. 11TH - MAR. 17TH, 2026"
+    # Extract date range. Historical formats observed:
+    #   "MAR. 11TH - MAR. 17TH, 2026"   (abbreviated month with period)
+    #   "JUNE 3RD - JUNE 9TH, 2026"     (full month name, no period)  \u2190 current
+    # {3,9} covers all abbreviations (3) and the longest full month "SEPTEMBER" (9).
     date_pattern = re.compile(
-        r"([A-Z]{3}\.?\s+\d+(?:ST|ND|RD|TH)?)\s*[-\u2013]\s*"
-        r"([A-Z]{3}\.?\s+\d+(?:ST|ND|RD|TH)?),?\s*(\d{4})",
+        r"([A-Z]{3,9}\.?\s+\d+(?:ST|ND|RD|TH)?)\s*[-\u2013]\s*"
+        r"([A-Z]{3,9}\.?\s+\d+(?:ST|ND|RD|TH)?),?\s*(\d{4})",
         re.IGNORECASE,
     )
     m = date_pattern.search(page_text)

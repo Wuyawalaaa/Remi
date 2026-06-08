@@ -176,18 +176,25 @@ def product_to_deal(p: dict) -> list[dict]:
         p.get("post_price_text"),
         p.get("sale_story"),
     )
+    disclaimer = (p.get("disclaimer_text") or "").strip()
+    brand      = (p.get("brand") or "").strip()
     base = {
-        "sale_price":     sale_price,
-        "original_price": None,
-        "unit":           unit,
-        "deal_type":      deal_type,
-        "quality_tags":   [],
-        "category":       (
+        "price_flyer":        sale_price,
+        "original_price":     to_float(p.get("original_price")),
+        "unit_flyer":         unit,
+        "package_amount":     1,
+        "per_unit_volume":    None,
+        "deal_type":          deal_type,
+        "deal_conditions":    disclaimer or None,
+        "brand":              brand or None,
+        "promotion_group_id": None,
+        "quality_tags":       [],
+        "category":           (
             google_category_to_canonical(p.get("item_categories"), normalize_category)
             or guess_category_from_name(p.get("description") or p.get("name"))
         ),
-        "valid_from":     (p.get("valid_from") or "")[:10],
-        "valid_to":       (p.get("valid_to")   or "")[:10],
+        "valid_from":         (p.get("valid_from") or "")[:10],
+        "valid_to":           (p.get("valid_to")   or "")[:10],
     }
     names = choose_product_names(p)
     return [{**base, "product_name": n} for n in names]

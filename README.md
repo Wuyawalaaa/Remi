@@ -11,8 +11,7 @@ Use this repository README as the source of truth for:
 - how to run it locally
 - how the pipeline and publish model work
 
-Use [docs/prd-v0.md](docs/prd-v0.md) as the current milestone PRD for GitHub collaborators.
-Use [CONTRIBUTING.md](CONTRIBUTING.md) for collaborator workflow expectations.
+The current milestone spec (`260530_V0_PRD_v1.md`) and the full Granny PRD (`260530_Granny_PRD_v6.md`) live in the `docs/` folder one level above this repository (`../docs/`), kept outside the repo on purpose.
 
 ## What Works Today
 
@@ -23,6 +22,8 @@ Use [CONTRIBUTING.md](CONTRIBUTING.md) for collaborator workflow expectations.
 - `/admin` operations dashboard
 - chat-based shopping assistant prototype
 - local weekly scheduling on macOS via `launchd`
+
+Proposed additional stores (not yet built): Costco, Whole Foods, Trader Joe's.
 
 ## Not Yet Implemented
 
@@ -43,7 +44,6 @@ Use [CONTRIBUTING.md](CONTRIBUTING.md) for collaborator workflow expectations.
 - `parse_*_deals.py` — normalization and parsing logic
 - `templates/` — server-rendered HTML
 - `static/` — frontend assets
-- `docs/` — project docs and current-scope PRD
 - `scripts/` — helper scripts including scheduler install/uninstall
 - `launchd/` — macOS scheduler template
 
@@ -60,6 +60,7 @@ Install dependencies:
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+playwright install chromium   # required by the H Mart and 99 Ranch flyer fetchers
 ```
 
 ### Environment
@@ -134,13 +135,13 @@ Install the default scheduler:
 ./scripts/install_launchd_job.sh
 ```
 
-Default schedule is Wednesday at 6:00 AM local time.
+Default schedule is Thursday at 6:00 AM local time.
 
 Current behavior:
 
 - one shared weekly scheduler runs the full pipeline for all supported stores
 - it is not yet a true per-store cadence scheduler
-- current automatic run time for Safeway, H Mart, 99 Ranch, and Cardenas is the same shared Wednesday 6:00 AM job
+- current automatic run time for Safeway, H Mart, 99 Ranch, and Cardenas is the same shared Thursday 6:00 AM job
 
 Logs:
 
@@ -154,9 +155,7 @@ logs/weekly_pipeline.err.log
 - This repo is intended to be code-and-docs only.
 - Generated flyer outputs, temp images, logs, and local databases should stay out of git.
 - If README and older notes disagree, trust the current code and this README.
-- The current milestone for collaborators is documented in [docs/prd-v0.md](docs/prd-v0.md).
-- The ingestion automation design lives in [docs/design/weekly-ingestion-automation-design.md](docs/design/weekly-ingestion-automation-design.md).
-- The early product pitch lives in [docs/vision/grocery-deal-proposal.md](docs/vision/grocery-deal-proposal.md).
+- Planning docs live in `../docs/` (one level up, outside this repo): the V0 milestone PRD (`260530_V0_PRD_v1.md`), the full Granny PRD (`260530_Granny_PRD_v6.md`), the ingestion automation design (`260327_Ingestion_Design_v1.md`), and the early product pitch (`260219_Granny_Vision_v1.md`).
 
 ## Current Priorities
 
