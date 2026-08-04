@@ -5,7 +5,8 @@ import subprocess
 from datetime import datetime
 
 import stores
-from database_utils import ensure_pipeline_schema, record_pipeline_run
+import publish_gate
+from database_utils import ensure_pipeline_schema, get_connection, record_pipeline_run
 
 BASE_DIR = os.path.dirname(__file__)
 PYTHON = sys.executable   # use the same interpreter as the parent, so launchd's stripped PATH doesn't matter
@@ -64,6 +65,19 @@ def run(store_names=None):
                 overall_ok = False
                 print(f"Failed: {command}")
                 break
+
+    # Nothing used to look at what was already live, so a store whose updates
+    # failed kept serving the same prices for months. Retire anything long past
+    # its validity, whether or not this run produced a replacement.
+    con = get_connection()
+    retired = publish_gate.retire_expired(con)
+    con.close()
+    for store_name, valid_to, days in retired:
+        print(f"下架过期数据: {store_name}（有效期至 {valid_to}，已过期 {days} 天）")
+        record_pipeline_run(
+            store_name=store_name, step_name="retire_expired", status="retired",
+            message=f"valid_to={valid_to} expired {days}d",
+        )
 
     return 0 if overall_ok else 1
 
