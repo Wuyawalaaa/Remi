@@ -67,8 +67,14 @@ def ensure_pipeline_schema():
     cur.execute("CREATE INDEX IF NOT EXISTS idx_pipeline_runs_batch_id ON pipeline_runs(batch_id)")
     cur.execute("CREATE INDEX IF NOT EXISTS idx_pipeline_runs_store_step ON pipeline_runs(store_name, step_name)")
 
-    _backfill_batches(cur)
-    _normalize_published_batches(cur)
+    # _backfill_batches and _normalize_published_batches used to run here, on every
+    # call. Both are one-time migration steps from the 2026-03-28 batch-model change:
+    # backfill only has work while some deals still lack a batch_id (none do), and
+    # normalize picks which batch is published using recency alone, ignoring whether
+    # it holds any rows. Because this function runs on essentially every database
+    # helper and on app import, normalize silently reverted manual repairs — an
+    # operator republishing a good batch saw it replaced by an empty one seconds
+    # later. Both are now explicit; see repair_published_batches().
 
     con.commit()
     con.close()
@@ -264,5 +270,24 @@ def record_pipeline_run(store_name, step_name, status, batch_id=None, message=No
             started_at, finished_at, message
         ) VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (batch_id, store_name, step_name, status, started_at, finished_at, message))
+    con.commit()
+    con.close()
+
+
+def repair_published_batches():
+    """Reconcile batch publish state. Deliberate, manual, called by nothing.
+
+    Assigns batch ids to any orphaned deals, then forces exactly one published
+    batch per store, chosen by recency. Note it does NOT check row counts, so it
+    can select an empty batch — inspect the result before relying on it.
+
+    Kept out of ensure_pipeline_schema() on purpose: changing which batch is live
+    is a decision, not a side effect of touching the database.
+    """
+    ensure_pipeline_schema()
+    con = get_connection()
+    cur = con.cursor()
+    _backfill_batches(cur)
+    _normalize_published_batches(cur)
     con.commit()
     con.close()
