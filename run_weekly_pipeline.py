@@ -10,29 +10,25 @@ BASE_DIR = os.path.dirname(__file__)
 PYTHON = sys.executable   # use the same interpreter as the parent, so launchd's stripped PATH doesn't matter
 
 STORE_PIPELINES = {
+    # Safeway, Cardenas and H Mart all come from Flipp's open API now: one
+    # fetcher, no credentials, no OCR. 99 Ranch is not carried by Flipp and
+    # keeps its own endpoint.
     "safeway": [
-        f"{PYTHON} download_safeway_flyer.py",
-        f"{PYTHON} ocr_safeway_flyer.py",
-        f"{PYTHON} parse_safeway_deals.py",
+        f"{PYTHON} download_flipp_flyer.py safeway",
         f"{PYTHON} import_to_database.py safeway",
     ],
+    "cardenas": [
+        f"{PYTHON} download_flipp_flyer.py cardenas",
+        f"{PYTHON} import_to_database.py cardenas",
+    ],
     "hmart": [
-        f"{PYTHON} download_hmart_flyer.py",
-        f"{PYTHON} ocr_hmart_flyer.py",
-        f"{PYTHON} parse_hmart_deals.py",
+        f"{PYTHON} download_flipp_flyer.py hmart",
         f"{PYTHON} import_to_database.py hmart",
     ],
     "99ranch": [
         f"{PYTHON} download_99ranch_flyer.py",
-        # OCR step removed: 99 Ranch data is structured JSON from the API; parse_99ranch_deals.py
-        # reads the raw.json directly and does not consume OCR output.
         f"{PYTHON} parse_99ranch_deals.py",
         f"{PYTHON} import_to_database.py 99ranch",
-    ],
-    "cardenas": [
-        f"{PYTHON} download_cardenas_flyer.py",
-        f"{PYTHON} parse_cardenas_deals.py",
-        f"{PYTHON} import_to_database.py cardenas",
     ],
 }
 
