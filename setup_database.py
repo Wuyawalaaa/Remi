@@ -51,6 +51,7 @@ def create_database():
             deal_type           TEXT,
             deal_conditions     TEXT,
             promotion_group_id  TEXT,
+            product_key         TEXT,
             batch_id            TEXT
         );
 
@@ -64,12 +65,18 @@ def create_database():
         CREATE INDEX idx_valid_dates ON deals (valid_from, valid_to);
 
         -- Unique composite index for deduplication
-        CREATE UNIQUE INDEX idx_dedup ON deals (product_name, store_name, valid_from);
+        CREATE UNIQUE INDEX idx_dedup ON deals (batch_id, product_key);
+        CREATE INDEX idx_deals_product_name ON deals(product_name);
     """)
 
     con.commit()
     con.close()
     ensure_pipeline_schema()
+    # Run the migration too, so a database created here is structurally identical
+    # to one that was migrated. Otherwise a fresh install silently lacks
+    # idx_one_published and can end up serving two batches for one store.
+    from migrate_batch_independence import migrate
+    migrate(DB_PATH, verbose=False)
     log.info("Database and indexes created successfully.")
 
 

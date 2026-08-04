@@ -6,6 +6,8 @@ import logging
 import sqlite3
 from pathlib import Path
 from datetime import datetime
+import publish_gate
+from migrate_batch_independence import build_product_key
 from database_utils import (
     ensure_pipeline_schema,
     create_batch,
@@ -295,9 +297,9 @@ def import_deals(deals: list, store_name: str, batch_id: str | None = None) -> d
                         scraped_at, flyer_image_url,
                         normalized_price, unit_norm,
                         price_source, deal_type,
-                        deal_conditions, promotion_group_id, batch_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(product_name, store_name, valid_from) DO UPDATE SET
+                        deal_conditions, promotion_group_id, batch_id, product_key
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(batch_id, product_key) DO UPDATE SET
                         brand               = excluded.brand,
                         quality_tags        = excluded.quality_tags,
                         original_price      = excluded.original_price,
@@ -315,8 +317,7 @@ def import_deals(deals: list, store_name: str, batch_id: str | None = None) -> d
                         price_source        = excluded.price_source,
                         deal_type           = excluded.deal_type,
                         deal_conditions     = excluded.deal_conditions,
-                        promotion_group_id  = excluded.promotion_group_id,
-                        batch_id            = excluded.batch_id
+                        promotion_group_id  = excluded.promotion_group_id
                 """, (
                     store_name,
                     deal.get("product_name"),
@@ -341,6 +342,8 @@ def import_deals(deals: list, store_name: str, batch_id: str | None = None) -> d
                     deal.get("deal_conditions"),
                     deal.get("promotion_group_id"),
                     batch_id,
+                    build_product_key(deal.get("brand"), deal.get("product_name"),
+                                      per_unit_volume, price_flyer),
                 ))
                 inserted += 1
 
@@ -425,13 +428,43 @@ def run_one(json_path, batch_id=None, auto_publish=True):
         finished_at=datetime.now().isoformat(),
         message=f"inserted={counts['inserted']} warnings={counts['warnings']} failed={counts['failed']}",
     )
+    con_g = sqlite3.connect(DB_PATH)
+    con_g.row_factory = sqlite3.Row
+    actual_rows = con_g.execute(
+        "SELECT COUNT(*) FROM deals WHERE batch_id = ?", (batch_id,)
+    ).fetchone()[0]
+    # row_count must reflect the rows actually stored. counts["inserted"] counts
+    # updates too, which is how a batch came to claim 264 rows while owning none.
+    update_batch(batch_id, row_count=actual_rows)
+
     if auto_publish:
+        try:
+            warnings_, facts = publish_gate.assert_publishable(con_g.cursor(), batch_id)
+        except publish_gate.BatchRejected as exc:
+            con_g.close()
+            mark_batch_failed(batch_id, message="; ".join(exc.reasons))
+            record_pipeline_run(
+                batch_id=batch_id, store_name=store_name, step_name="publish_gate",
+                status="rejected", message="; ".join(exc.reasons),
+            )
+            log.error(f"REJECTED {store_name}: {'; '.join(exc.reasons)}")
+            log.error("  previous published batch left untouched")
+            raise
+        for w in warnings_:
+            log.warning(f"{store_name}: {w}")
+        con_g.close()
         mark_batch_published(
             batch_id,
-            row_count=counts["inserted"],
+            row_count=actual_rows,
             warning_count=counts["warnings"],
             error_count=counts["failed"],
         )
+        record_pipeline_run(
+            batch_id=batch_id, store_name=store_name, step_name="publish_gate",
+            status="passed", message=f"published {actual_rows} rows",
+        )
+    else:
+        con_g.close()
 
     con = sqlite3.connect(DB_PATH)
     cur = con.cursor()
@@ -495,12 +528,26 @@ def run(json_path=None):
     else:
         targets = STORE_DIRS  # all stores
 
+    failures = []
     for store_key, store_dir in targets.items():
         try:
             json_file = find_latest_deals_json(store_dir)
             run_one(json_file)
         except FileNotFoundError as e:
             log.warning(f"Skipping {store_key}: {e}")
+            failures.append(f"{store_key}: no deals file")
+        except publish_gate.BatchRejected as e:
+            failures.append(f"{store_key}: {'; '.join(e.reasons)}")
+        except Exception as e:  # noqa: BLE001 - one store must not stop the rest
+            log.error(f"{store_key} failed: {e}")
+            failures.append(f"{store_key}: {e}")
+
+
+    if failures:
+        print("\n=== 未能发布 ===")
+        for f in failures:
+            print("  " + f)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
