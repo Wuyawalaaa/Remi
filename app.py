@@ -18,7 +18,16 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "database.db")
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
 ensure_pipeline_schema()
 
-ALL_STORES = ["Safeway", "H Mart", "99 Ranch", "Cardenas"]
+def all_stores():
+    """Stores that actually have published data. Derived, not declared -- the
+    hardcoded list here used display names while the rest of the pipeline used
+    slugs, and that mismatch is what hid four months of failures."""
+    con = sqlite3.connect(DB_PATH)
+    rows = con.execute(
+        "SELECT DISTINCT store_name FROM batches WHERE status='published' ORDER BY store_name"
+    ).fetchall()
+    con.close()
+    return [r[0] for r in rows]
 
 _BLOCKED_EXACT_NAMES = {
     "monthly credit",
@@ -258,7 +267,7 @@ def index():
         except Exception:
             sample["quality_tags"] = []
 
-    return render_template("index.html", stores=ALL_STORES, categories=categories,
+    return render_template("index.html", stores=all_stores(), categories=categories,
                            deals=all_deals, sample=sample)
 
 

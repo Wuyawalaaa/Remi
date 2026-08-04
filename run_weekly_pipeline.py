@@ -4,33 +4,12 @@ import shlex
 import subprocess
 from datetime import datetime
 
+import stores
 from database_utils import ensure_pipeline_schema, record_pipeline_run
 
 BASE_DIR = os.path.dirname(__file__)
 PYTHON = sys.executable   # use the same interpreter as the parent, so launchd's stripped PATH doesn't matter
 
-STORE_PIPELINES = {
-    # Safeway, Cardenas and H Mart all come from Flipp's open API now: one
-    # fetcher, no credentials, no OCR. 99 Ranch is not carried by Flipp and
-    # keeps its own endpoint.
-    "safeway": [
-        f"{PYTHON} download_flipp_flyer.py safeway",
-        f"{PYTHON} import_to_database.py safeway",
-    ],
-    "cardenas": [
-        f"{PYTHON} download_flipp_flyer.py cardenas",
-        f"{PYTHON} import_to_database.py cardenas",
-    ],
-    "hmart": [
-        f"{PYTHON} download_flipp_flyer.py hmart",
-        f"{PYTHON} import_to_database.py hmart",
-    ],
-    "99ranch": [
-        f"{PYTHON} download_99ranch_flyer.py",
-        f"{PYTHON} parse_99ranch_deals.py",
-        f"{PYTHON} import_to_database.py 99ranch",
-    ],
-}
 
 
 def _run_step(store_name, command):
@@ -68,15 +47,15 @@ def _run_step(store_name, command):
 
 def run(store_names=None):
     ensure_pipeline_schema()
-    targets = store_names or list(STORE_PIPELINES.keys())
+    targets = store_names or list(stores.enabled_stores())
     overall_ok = True
 
     for store_name in targets:
-        commands = STORE_PIPELINES.get(store_name)
-        if not commands:
-            print(f"Unknown store '{store_name}'. Known: {', '.join(STORE_PIPELINES)}")
+        if store_name not in stores.STORES:
+            print(f"Unknown store '{store_name}'. Known: {', '.join(stores.STORES)}")
             overall_ok = False
             continue
+        commands = [f"{PYTHON} {step}" for step in stores.steps_for(store_name)]
 
         print(f"\n=== {store_name} ===")
         for command in commands:

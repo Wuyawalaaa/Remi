@@ -1,10 +1,5 @@
-Flask
-python-dotenv
-PyMuPDF
 requests
-Pillow
+flask
+python-dotenv
 google-genai
 google-auth
-openai
-anthropic
-playwright

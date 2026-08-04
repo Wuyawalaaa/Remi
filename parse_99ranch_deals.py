@@ -8,7 +8,7 @@ from collections import Counter
 
 import sys
 sys.path.insert(0, os.path.dirname(__file__))
-from parse_safeway_deals import validate_deal, enrich_deal, normalize_category
+from deal_fields import enrich_deal, normalize_category
 from parse_taxonomy import google_category_to_canonical
 
 FLYERS_DIR = os.path.join(os.path.dirname(__file__), "flyers", "99ranch")
@@ -125,7 +125,8 @@ def run():
         deal = enrich_deal(deal, valid_from, valid_to)
         all_deals.append(deal)
 
-    valid_deals = [d for d in all_deals if validate_deal(d)]
+    # validate_deal always returned True; the publish gate does validation now.
+    valid_deals = all_deals
     skipped     = len(all_deals) - len(valid_deals)
     if skipped:
         log.warning(f"Skipped {skipped} items missing required fields")

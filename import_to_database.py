@@ -21,12 +21,14 @@ DB_PATH    = os.path.join(os.path.dirname(__file__), "database.db")
 FLYERS_DIR = os.path.join(os.path.dirname(__file__), "flyers", "safeway")
 
 BASE_DIR = os.path.dirname(__file__)
-STORE_DIRS = {
-    "safeway":  os.path.join(BASE_DIR, "flyers", "safeway"),
-    "hmart":    os.path.join(BASE_DIR, "flyers", "hmart"),
-    "99ranch":  os.path.join(BASE_DIR, "flyers", "99ranch"),
-    "cardenas": os.path.join(BASE_DIR, "flyers", "cardenas"),
-}
+import stores
+
+
+def store_dir(store_key):
+    """The directory is the store key. Nothing to declare."""
+    return os.path.join(BASE_DIR, "flyers", store_key)
+
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 log = logging.getLogger(__name__)
@@ -521,17 +523,17 @@ def run(json_path=None):
     # Store name(s)
     if arg:
         store_key = arg.lower()
-        if store_key not in STORE_DIRS:
-            print(f"Unknown store '{arg}'. Known: {', '.join(STORE_DIRS)}")
+        if store_key not in stores.STORES:
+            print(f"Unknown store '{arg}'. Known: {', '.join(stores.STORES)}")
             sys.exit(1)
-        targets = {store_key: STORE_DIRS[store_key]}
+        targets = {store_key: store_dir(store_key)}
     else:
-        targets = STORE_DIRS  # all stores
+        targets = {k: store_dir(k) for k in stores.enabled_stores()}
 
     failures = []
-    for store_key, store_dir in targets.items():
+    for store_key, deals_dir in targets.items():
         try:
-            json_file = find_latest_deals_json(store_dir)
+            json_file = find_latest_deals_json(deals_dir)
             run_one(json_file)
         except FileNotFoundError as e:
             log.warning(f"Skipping {store_key}: {e}")
