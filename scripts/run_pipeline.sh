@@ -9,4 +9,4 @@ PYTHON_BIN="${PYTHON_BIN:-/Library/Frameworks/Python.framework/Versions/3.13/bin
 mkdir -p "$LOG_DIR"
 cd "$REPO_ROOT"
 
-exec "$PYTHON_BIN" "$REPO_ROOT/run_weekly_pipeline.py"
+exec "$PYTHON_BIN" "$REPO_ROOT/run_pipeline.py"

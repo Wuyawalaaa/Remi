@@ -19,13 +19,19 @@
   <key>StandardErrorPath</key>
   <string>__STDERR__</string>
 
+  <!-- Catch up after the laptop was asleep at the scheduled time, rather than
+       silently skipping the day. A missed run used to be indistinguishable from
+       a run that found nothing. -->
   <key>RunAtLoad</key>
-  <false/>
+  <true/>
 
+  <!-- Daily, not weekly. Stores publish on different cadences: three of the four
+       change flyers on Wednesday, 99 Ranch on Friday, so no single weekday is
+       right for all of them. Running every day removes the need for per-store
+       cadence config entirely — a store that already has current data costs one
+       database read and no network calls at all. -->
   <key>StartCalendarInterval</key>
   <dict>
-    <key>Weekday</key>
-    <integer>__WEEKDAY__</integer>
     <key>Hour</key>
     <integer>__HOUR__</integer>
     <key>Minute</key>

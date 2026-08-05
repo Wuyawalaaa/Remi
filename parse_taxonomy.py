@@ -135,7 +135,7 @@ def _clean_taxonomy_name(name):
 
 
 def google_category_to_canonical(item_categories, fallback_normalizer=None):
-    """Map a Google/Flipp taxonomy dict onto Granny's canonical category set."""
+    """Map a Google/Flipp taxonomy dict onto Remi's canonical category set."""
     if not item_categories:
         return None
 

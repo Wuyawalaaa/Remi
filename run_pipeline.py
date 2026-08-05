@@ -2,7 +2,7 @@ import os
 import sys
 import shlex
 import subprocess
-from datetime import datetime
+from datetime import date, datetime
 
 import stores
 import publish_gate
@@ -11,6 +11,32 @@ from database_utils import ensure_pipeline_schema, get_connection, record_pipeli
 BASE_DIR = os.path.dirname(__file__)
 PYTHON = sys.executable   # use the same interpreter as the parent, so launchd's stripped PATH doesn't matter
 
+
+
+def already_current(store_key, today=None):
+    """True if this store already has published data that covers today.
+
+    Running daily means asking this question every day, so it has to be cheap and
+    it has to be right. It reads the database, not the filesystem: a file on disk
+    only proves something was written, while a published batch proves it passed
+    the gate. That difference is what stops a bad week from becoming permanent —
+    the old skip-if-file-exists check meant one failed fetch wrote an empty
+    artifact that every later run, manual ones included, then skipped over.
+    Because a rejected batch never reaches 'published', this returns False and the
+    store is retried tomorrow, automatically.
+    """
+    today = today or date.today().isoformat()
+    con = get_connection()
+    row = con.execute(
+        """SELECT 1 FROM batches b
+           WHERE b.store_name = ? AND b.status = 'published'
+             AND b.valid_to >= ?
+             AND (SELECT COUNT(*) FROM deals d WHERE d.batch_id = b.id) > 0
+           LIMIT 1""",
+        (stores.display_name(store_key), today),
+    ).fetchone()
+    con.close()
+    return row is not None
 
 
 def _run_step(store_name, command):
@@ -61,6 +87,15 @@ def run(store_names=None):
             print(f"Unknown store '{store_name}'. Known: {', '.join(stores.STORES)}")
             overall_ok = False
             continue
+        if already_current(store_name):
+            print(f"\n=== {store_name} === 本周数据已在线，跳过")
+            record_pipeline_run(
+                store_name=stores.display_name(store_name), step_name="skip",
+                status="skipped", message="already has published data covering today",
+                started_at=datetime.now().isoformat(), finished_at=datetime.now().isoformat(),
+            )
+            continue
+
         commands = [f"{PYTHON} {step}" for step in stores.steps_for(store_name)]
 
         print(f"\n=== {store_name} ===")
