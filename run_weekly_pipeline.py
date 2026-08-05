@@ -14,6 +14,11 @@ PYTHON = sys.executable   # use the same interpreter as the parent, so launchd's
 
 
 def _run_step(store_name, command):
+    # Record the display name, matching what batches holds. These two tables used
+    # to disagree -- slugs here, display names there -- and the admin dashboard
+    # joined one to the other, silently matched nothing, and showed no run history
+    # for the stores that were failing every week.
+    store_name = stores.display_name(store_name)
     step_name = command.split()[1] if len(command.split()) > 1 else command
     started_at = datetime.now().isoformat()
     try:

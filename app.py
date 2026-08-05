@@ -4,6 +4,8 @@ import json
 import glob
 import uuid
 import sqlite3
+
+import pipeline_status
 import difflib
 from collections import Counter
 from datetime import date, datetime, timedelta
@@ -268,6 +270,7 @@ def index():
             sample["quality_tags"] = []
 
     return render_template("index.html", stores=all_stores(), categories=categories,
+                           status=pipeline_status.overall(DB_PATH),
                            deals=all_deals, sample=sample)
 
 

@@ -16,6 +16,79 @@
   </header>
 
   <main>
+
+    {# Pipeline health. This is an admin console, not a shopper-facing page, so
+       the state of the ingestion belongs at the top. Four months of weekly
+       failures went unnoticed because nothing on any page said so. #}
+    {% if status %}
+    <section id="pipeline-status" style="margin:0 0 20px;border-radius:12px;overflow:hidden;
+             border:1px solid {% if status.healthy %}#2c2c2e{% else %}#8a2622{% endif %};">
+      <div style="padding:12px 18px;background:{% if status.healthy %}#1d1d1f{% else %}#3a1613{% endif %};
+                  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:13px;font-weight:700;color:{% if status.healthy %}#8e8e93{% else %}#ff6b60{% endif %};">
+          {% if status.healthy %}
+            抓取正常 — {{ status.configured }} 家店都有当周数据
+          {% else %}
+            需要处理 {{ status.problems|length }} 项
+          {% endif %}
+        </div>
+        <div style="font-size:11px;color:#6e6e73;">
+          上次运行 {{ status.last_run_at[:16] if status.last_run_at else '从未' }}
+          {% if status.days_since_run is not none %}（{{ status.days_since_run }} 天前）{% endif %}
+        </div>
+      </div>
+
+      {% if not status.healthy %}
+      <ul style="margin:0;padding:10px 18px 12px 34px;background:#2a100e;color:#ff9a91;font-size:12.5px;line-height:1.7;">
+        {% for p in status.problems %}<li>{{ p }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+
+      <details style="background:#141416;">
+        <summary style="padding:9px 18px;color:#6e6e73;font-size:11.5px;cursor:pointer;list-style:none;">
+          每家店的详情 ▾
+        </summary>
+        <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;color:#c7c7cc;">
+          <thead>
+            <tr style="color:#6e6e73;text-align:left;">
+              <th style="padding:7px 18px;font-weight:600;">店</th>
+              <th style="padding:7px 10px;font-weight:600;">当前数据</th>
+              <th style="padding:7px 10px;font-weight:600;">最后成功</th>
+              <th style="padding:7px 10px;font-weight:600;">连续</th>
+              <th style="padding:7px 10px;font-weight:600;">近 10 次</th>
+              <th style="padding:7px 10px;font-weight:600;">累计</th>
+              <th style="padding:7px 10px;font-weight:600;">近况</th>
+              <th style="padding:7px 18px;font-weight:600;">上次运行</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in status.stores %}
+            <tr style="border-top:1px solid #232325;">
+              <td style="padding:7px 18px;color:#fff;font-weight:600;">{{ s.display }}</td>
+              <td style="padding:7px 10px;">
+                {% if s.has_data %}
+                  {{ s.valid_from }} → {{ s.valid_to }} · {{ s.rows }} 条
+                  {% if not s.data_valid %}<span style="color:#ff6b60;"> 已过期 {{ s.days_stale }} 天</span>{% endif %}
+                {% else %}<span style="color:#ff6b60;">无数据</span>{% endif %}
+              </td>
+              <td style="padding:7px 10px;">{{ s.last_success or '从未' }}</td>
+              <td style="padding:7px 10px;">{{ s.consecutive_ok }}</td>
+              <td style="padding:7px 10px;">{{ s.recent_ok }}/{{ s.recent_total }}</td>
+              <td style="padding:7px 10px;">{{ s.lifetime_ok }}/{{ s.lifetime_total }}</td>
+              <td style="padding:7px 10px;font-family:ui-monospace,monospace;letter-spacing:1px;">{{ s.sequence }}</td>
+              <td style="padding:7px 18px;color:#8e8e93;">
+                {{ s.last_run_status or '—' }}{% if s.last_run_message %} · {{ s.last_run_message[:60] }}{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </div>
+      </details>
+    </section>
+    {% endif %}
+
     <div class="view-tabs" role="tablist" aria-label="Main views">
       <button class="view-tab active" id="tab-deals" data-tab="deals" role="tab" aria-selected="true" aria-controls="panel-deals">Deals</button>
       <button class="view-tab" id="tab-assistant" data-tab="assistant" role="tab" aria-selected="false" aria-controls="panel-assistant">Assistant</button>

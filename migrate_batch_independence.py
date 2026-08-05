@@ -91,6 +91,7 @@ def migrate(db_path=DB_PATH, verbose=True):
 
     got = cur.execute("SELECT sql FROM sqlite_master WHERE name='idx_dedup'").fetchone()[0]
     con.close()
+    normalize_run_store_names(db_path, verbose=verbose)
     if verbose:
         print(f"  索引现在是: {got}")
     return got
@@ -120,3 +121,29 @@ if __name__ == "__main__":
     ok, problems = verify(path)
     print("  验证:", "通过" if ok else "失败 -> " + "; ".join(problems))
     sys.exit(0 if ok else 1)
+
+
+def normalize_run_store_names(db_path=DB_PATH, verbose=True):
+    """Make pipeline_runs.store_name agree with batches.store_name.
+
+    The orchestrator wrote slugs ("hmart") while the importer wrote display names
+    ("H Mart"), so the admin dashboard's join between the two tables matched
+    nothing — and matched nothing precisely for the stores whose download step
+    failed before the importer ever ran. Four months of weekly failures were
+    invisible for this reason alone.
+    """
+    import stores
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    changed = 0
+    for key in stores.STORES:
+        display = stores.display_name(key)
+        if display == key:
+            continue
+        cur.execute("UPDATE pipeline_runs SET store_name = ? WHERE store_name = ?", (display, key))
+        changed += cur.rowcount
+    con.commit()
+    con.close()
+    if verbose and changed:
+        print(f"  已将 {changed} 条运行记录的店名统一为显示名")
+    return changed
