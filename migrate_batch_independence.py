@@ -97,6 +97,32 @@ def migrate(db_path=DB_PATH, verbose=True):
     return got
 
 
+def normalize_run_store_names(db_path=DB_PATH, verbose=True):
+    """Make pipeline_runs.store_name agree with batches.store_name.
+
+    The orchestrator wrote slugs ("hmart") while the importer wrote display names
+    ("H Mart"), so the admin dashboard's join between the two tables matched
+    nothing — and matched nothing precisely for the stores whose download step
+    failed before the importer ever ran. Four months of weekly failures were
+    invisible for this reason alone.
+    """
+    import stores
+    con = sqlite3.connect(db_path)
+    cur = con.cursor()
+    changed = 0
+    for key in stores.STORES:
+        display = stores.display_name(key)
+        if display == key:
+            continue
+        cur.execute("UPDATE pipeline_runs SET store_name = ? WHERE store_name = ?", (display, key))
+        changed += cur.rowcount
+    con.commit()
+    con.close()
+    if verbose and changed:
+        print(f"  已将 {changed} 条运行记录的店名统一为显示名")
+    return changed
+
+
 def verify(db_path=DB_PATH):
     con = sqlite3.connect(db_path)
     idx = {r[0]: r[1] for r in con.execute(
@@ -123,27 +149,3 @@ if __name__ == "__main__":
     sys.exit(0 if ok else 1)
 
 
-def normalize_run_store_names(db_path=DB_PATH, verbose=True):
-    """Make pipeline_runs.store_name agree with batches.store_name.
-
-    The orchestrator wrote slugs ("hmart") while the importer wrote display names
-    ("H Mart"), so the admin dashboard's join between the two tables matched
-    nothing — and matched nothing precisely for the stores whose download step
-    failed before the importer ever ran. Four months of weekly failures were
-    invisible for this reason alone.
-    """
-    import stores
-    con = sqlite3.connect(db_path)
-    cur = con.cursor()
-    changed = 0
-    for key in stores.STORES:
-        display = stores.display_name(key)
-        if display == key:
-            continue
-        cur.execute("UPDATE pipeline_runs SET store_name = ? WHERE store_name = ?", (display, key))
-        changed += cur.rowcount
-    con.commit()
-    con.close()
-    if verbose and changed:
-        print(f"  已将 {changed} 条运行记录的店名统一为显示名")
-    return changed

@@ -13,30 +13,77 @@ PYTHON = sys.executable   # use the same interpreter as the parent, so launchd's
 
 
 
-def already_current(store_key, today=None):
-    """True if this store already has published data that covers today.
+def already_current(store_key, today=None, max_days_without_fetch=8):
+    """True if this store can safely be skipped today.
 
-    Running daily means asking this question every day, so it has to be cheap and
-    it has to be right. It reads the database, not the filesystem: a file on disk
-    only proves something was written, while a published batch proves it passed
-    the gate. That difference is what stops a bad week from becoming permanent —
-    the old skip-if-file-exists check meant one failed fetch wrote an empty
-    artifact that every later run, manual ones included, then skipped over.
-    Because a rejected batch never reaches 'published', this returns False and the
-    store is retried tomorrow, automatically.
+    Running daily means asking this every day, so it must be cheap and it must be
+    right. It reads the database, not the filesystem: a file on disk only proves
+    something was written, while a published batch proves it passed the gate.
+    That difference is what stopped a bad week becoming permanent — the old
+    skip-if-file-exists check meant one failed fetch wrote an empty artifact that
+    every later run, manual ones included, then skipped over.
+
+    Three things must all hold, and the last two were missing at first:
+
+    - published data covers today
+    - no newer attempt was rejected. Otherwise a mid-week rejection is locked out
+      until the old flyer expires, which is a week — and rejections happen
+      precisely when the source changed shape, so that is the worst time to stop
+      looking.
+    - a real fetch happened recently. A store publishing a four-week flyer would
+      otherwise go a month untouched, and Lucky and FoodMaxx do publish those.
+
+    One real fetch per store per day is also the ceiling, checked first. RunAtLoad
+    fires on every login and wake, and an already-expired flyer publishes with a
+    warning yet never satisfies the coverage test — together that is an unbounded
+    loop re-downloading ~200 pages and writing a fresh batch every single login.
     """
     today = today or date.today().isoformat()
+    display = stores.display_name(store_key)
     con = get_connection()
-    row = con.execute(
-        """SELECT 1 FROM batches b
-           WHERE b.store_name = ? AND b.status = 'published'
-             AND b.valid_to >= ?
-             AND (SELECT COUNT(*) FROM deals d WHERE d.batch_id = b.id) > 0
-           LIMIT 1""",
-        (stores.display_name(store_key), today),
-    ).fetchone()
-    con.close()
-    return row is not None
+    try:
+        live = con.execute(
+            """SELECT id, published_at FROM batches b
+               WHERE b.store_name = ? AND b.status = 'published'
+                 AND b.valid_from <= ? AND b.valid_to >= ?
+                 AND (SELECT COUNT(*) FROM deals d WHERE d.batch_id = b.id) > 0
+               LIMIT 1""",
+            (display, today, today),
+        ).fetchone()
+        if not live:
+            return False
+
+        newer_failure = con.execute(
+            """SELECT 1 FROM batches
+               WHERE store_name = ? AND status = 'failed'
+                 AND created_at > COALESCE(?, '') LIMIT 1""",
+            (display, live["published_at"]),
+        ).fetchone()
+        if newer_failure:
+            return False
+
+        tried_today = con.execute(
+            """SELECT 1 FROM pipeline_runs WHERE store_name = ?
+                 AND step_name NOT IN ('skip', 'retire_expired')
+                 AND substr(COALESCE(started_at, finished_at), 1, 10) = ? LIMIT 1""",
+            (display, today),
+        ).fetchone()
+        if tried_today:
+            return True
+
+        last_fetch = con.execute(
+            """SELECT MAX(substr(COALESCE(started_at, finished_at), 1, 10))
+               FROM pipeline_runs WHERE store_name = ?
+                 AND step_name NOT IN ('skip', 'retire_expired')""",
+            (display,),
+        ).fetchone()[0]
+        if last_fetch:
+            gap = (date.fromisoformat(today) - date.fromisoformat(last_fetch)).days
+            if gap > max_days_without_fetch:
+                return False
+        return True
+    finally:
+        con.close()
 
 
 def _run_step(store_name, command):
@@ -87,7 +134,18 @@ def run(store_names=None):
             print(f"Unknown store '{store_name}'. Known: {', '.join(stores.STORES)}")
             overall_ok = False
             continue
-        if already_current(store_name):
+        try:
+            skip = already_current(store_name)
+        except Exception as exc:  # noqa: BLE001 - fail open: fetching beats doing nothing silently
+            print(f"\n=== {store_name} === 跳过判断出错，改为照常抓取: {exc}")
+            record_pipeline_run(
+                store_name=stores.display_name(store_name), step_name="skip_check",
+                status="failed", message=str(exc),
+                started_at=datetime.now().isoformat(), finished_at=datetime.now().isoformat(),
+            )
+            skip = False
+
+        if skip:
             print(f"\n=== {store_name} === 本周数据已在线，跳过")
             record_pipeline_run(
                 store_name=stores.display_name(store_name), step_name="skip",

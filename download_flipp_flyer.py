@@ -27,6 +27,8 @@ from datetime import date, datetime
 
 import requests
 
+import stores
+
 BASE = "https://backflipp.wishabi.com/flipp"
 POSTAL_CODE = os.getenv("FLIPP_POSTAL_CODE", "94086")
 USER_AGENT = "Remi-grocery-agent/1.0 (weekly flyer ingest; contact: kaiwufun@gmail.com)"
@@ -34,13 +36,14 @@ REQUEST_PAUSE = 0.15          # be a polite neighbour; ~200 calls per store
 REQUEST_TIMEOUT = 30
 MAX_RETRIES = 3
 
-# Flipp's merchant label -> the store_name this project already uses in the DB.
-# Getting this mapping wrong creates a second, parallel store that never
-# supersedes the old one, so both stay published forever.
+# Derived from stores.py, which is the one place stores are declared. Keeping a
+# second copy here is what let the same store carry two names in two files, and
+# this module's value is what ends up in both batches.store_name and
+# pipeline_runs.store_name.
 MERCHANTS = {
-    "safeway":  {"flipp_name": "Safeway",          "store_name": "Safeway"},
-    "cardenas": {"flipp_name": "Cardenas Markets", "store_name": "Cardenas"},
-    "hmart":    {"flipp_name": "H Mart",           "store_name": "H Mart"},
+    key: {"flipp_name": cfg["flipp_merchant"], "store_name": cfg["display_name"]}
+    for key, cfg in stores.STORES.items()
+    if cfg.get("source") == "flipp"
 }
 
 FLYERS_DIR = os.path.join(os.path.dirname(__file__), "flyers")
