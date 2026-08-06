@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Remi — 解析检查台</title>
+<style>
+  :root{
+    --bg:#0e0e10; --panel:#label; --line:#232325; --dim:#6e6e73;
+    --text:#e6e6ea; --mute:#9a9aa0; --warn:#ffb454; --bad:#ff6b60; --ok:#4ec98a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#0e0e10;color:#e6e6ea;
+       font:14px/1.55 ui-sans-serif,-apple-system,"PingFang SC",system-ui,sans-serif}
+  a{color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 80px}
+
+  h1{font-size:19px;margin:0 0 4px;font-weight:650}
+  .sub{color:var(--dim);font-size:12.5px;margin:0 0 22px}
+
+  /* ── fault code chips ─────────────────────────────────────────────────── */
+  .codes{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+  .chip{background:#1a1a1d;border:1px solid #2a2a2e;border-radius:9px;
+        padding:8px 11px;cursor:pointer;min-width:150px;text-align:left;
+        color:inherit;font:inherit;transition:border-color .12s,background .12s}
+  .chip:hover{border-color:#3d3d43}
+  .chip[aria-pressed="true"]{background:#242429;border-color:#5a5a63}
+  .chip .n{font-size:16px;font-weight:650}
+  .chip .lab{font-size:12.5px;margin-left:6px}
+  .chip .rule{display:block;color:var(--dim);font-size:10.5px;margin-top:3px;
+              line-height:1.4;max-width:280px}
+  .chip .conf{display:inline-block;font-size:9.5px;padding:1px 5px;border-radius:4px;
+              margin-top:4px;background:#2a2a2e;color:#8e8e93}
+  .chip .conf.guess{background:#3a2a12;color:var(--warn)}
+
+  /* ── filter bar ───────────────────────────────────────────────────────── */
+  .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 16px;
+       padding:10px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  select,input[type=search]{background:#161619;border:1px solid #2a2a2e;color:var(--text);
+       border-radius:7px;padding:6px 9px;font:inherit;font-size:12.5px}
+  input[type=search]{min-width:210px}
+  .count{margin-left:auto;color:var(--dim);font-size:12px}
+  .reset{background:none;border:none;color:var(--dim);cursor:pointer;font:inherit;
+         font-size:12px;text-decoration:underline}
+
+  /* ── items ────────────────────────────────────────────────────────────── */
+  .item{border-bottom:1px solid #1c1c1f}
+  .item[hidden]{display:none}
+  .r1{display:grid;grid-template-columns:1fr 190px 150px;gap:14px;align-items:baseline;
+      padding:11px 4px;cursor:pointer}
+  .r1:hover{background:#151518}
+  .name{font-weight:550}
+  .store{color:var(--dim);font-size:11px;margin-left:8px;font-weight:400}
+  .parsed{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
+  .unitprice{font-variant-numeric:tabular-nums;font-size:12.5px}
+  .tags{grid-column:1/-1;display:flex;gap:5px;flex-wrap:wrap;margin-top:2px}
+  .tag{font-size:10.5px;padding:1.5px 7px;border-radius:5px;
+       background:#3a1d1a;color:#ff9a91;border:1px solid #4d2622}
+  .tag.guess{background:#3a2a12;color:var(--warn);border-color:#4d3a18}
+  .clean{font-size:10.5px;color:var(--ok);opacity:.7}
+
+  /* ── expanded rows 2 & 3 ──────────────────────────────────────────────── */
+  .body{display:none;padding:2px 4px 18px;grid-template-columns:1fr 1fr;gap:20px}
+  .item.open .body{display:grid}
+  .box h4{margin:0 0 7px;font-size:11px;color:var(--dim);font-weight:600;
+          letter-spacing:.04em;text-transform:uppercase}
+  pre{margin:0;background:#141417;border:1px solid #202024;border-radius:8px;
+      padding:11px 13px;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
+      color:#c9c9cf;white-space:pre-wrap;word-break:break-word}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:12.5px}
+  .kv dt{color:var(--dim)}
+  .kv dd{margin:0;font-variant-numeric:tabular-nums}
+  .why{margin-top:9px;font-size:12px;color:#ffb0a8;line-height:1.7}
+  .why b{color:#ff8b80;font-weight:600}
+
+  .hist{grid-column:1/-1;margin-top:4px}
+  .hist summary{cursor:pointer;color:var(--dim);font-size:11.5px;padding:5px 0}
+  .ver{border-left:2px solid #2a2a2e;padding:6px 0 6px 12px;margin:6px 0 0}
+  .ver .vh{font-size:11.5px;color:var(--mute)}
+  .ver .vv{font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:2px}
+  .note{color:var(--dim);font-size:11.5px;margin-top:8px;line-height:1.6}
+  .empty{padding:50px 0;text-align:center;color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>解析检查台</h1>
+  <p class="sub">
+    {{ rows|length }} 条已发布数据 · <b>{{ n_faulty }}</b> 条至少命中一个故障码 ·
+    解析器版本 v1（基线）
+  </p>
+
+  <div class="codes">
+    {% for code, label, rule, conf, n in summary %}
+    <button class="chip" data-code="{{ code }}" aria-pressed="false">
+      <span class="n">{{ n }}</span><span class="lab">{{ label }}</span>
+      <span class="rule">{{ rule }}</span>
+      <span class="conf {{ 'guess' if '启发' in conf else '' }}">{{ conf }}</span>
+    </button>
+    {% endfor %}
+  </div>
+
+  <div class="bar">
+    <select id="f-store">
+      <option value="">全部店</option>
+      {% for s in stores %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select>
+    <select id="f-state">
+      <option value="">全部条目</option>
+      <option value="faulty">仅有故障码的</option>
+      <option value="clean">仅干净的</option>
+    </select>
+    <input type="search" id="f-q" placeholder="搜商品名 / 原文…">
+    <button class="reset" id="reset">清空筛选</button>
+    <span class="count" id="count"></span>
+  </div>
+
+  <div id="list">
+  {% for r in rows %}
+    {% set up = r.normalized_price %}
+    <article class="item"
+             data-store="{{ r.store_name }}"
+             data-codes="{{ r.faults|map(attribute='code')|join(' ') }}"
+             data-q="{{ ((r.product_name or '') ~ ' ' ~ (r.deal_conditions or '') ~ ' ' ~ (r.brand or ''))|lower }}">
+
+      <div class="r1">
+        <div>
+          <span class="name">{{ r.product_name }}</span>
+          <span class="store">{{ r.store_name }}</span>
+          <div class="tags">
+            {% for f in r.faults %}
+              <span class="tag {{ 'guess' if '启发' in f.confidence else '' }}"
+                    title="{{ f.rule }}{% if f.detail %} — {{ f.detail }}{% endif %}">{{ f.label }}</span>
+            {% else %}
+              <span class="clean">无故障码</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="parsed">
+          {% if r.price_flyer is not none %}${{ r.price_flyer }}{% else %}—{% endif %}
+          / {{ r.unit_flyer or '—' }}
+          {% if r.per_unit_volume %}· {{ r.per_unit_volume }}{% endif %}
+        </div>
+        <div class="unitprice">
+          {% if up %}${{ '%.2f'|format(up) }} / {{ r.unit_norm }}{% else %}<span style="color:#6e6e73">无单价</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="body">
+        <!-- 第二行：原文 -->
+        <div class="box">
+          <h4>第二行 · 原文</h4>
+          <pre>{{ r.deal_conditions or '（这条没有任何描述文字）' }}</pre>
+          {% if r.brand %}<div class="note">品牌字段：{{ r.brand }}</div>{% endif %}
+          {% if r.deal_type %}<div class="note">促销字段：{{ r.deal_type }}</div>{% endif %}
+        </div>
+
+        <!-- 第一行展开：解析器读出了什么 -->
+        <div class="box">
+          <h4>第一行 · 解析结果</h4>
+          <dl class="kv">
+            <dt>价格</dt><dd>{{ r.price_flyer if r.price_flyer is not none else '—' }}</dd>
+            <dt>单位</dt><dd>{{ r.unit_flyer or '—' }}</dd>
+            <dt>包装规格</dt><dd>{{ r.per_unit_volume or '（空）' }}</dd>
+            <dt>数量</dt><dd>{{ r.package_amount }}</dd>
+            <dt>算出单价</dt><dd>{% if up %}${{ '%.2f'|format(up) }} / {{ r.unit_norm }}{% else %}—{% endif %}</dd>
+            <dt>有效期</dt><dd>{{ r.b_from }} → {{ r.b_to }}</dd>
+          </dl>
+          {% if r.faults %}
+          <div class="why">
+            {% for f in r.faults %}
+              <div><b>{{ f.label }}</b> — {{ f.rule }}{% if f.detail %}（{{ f.detail }}）{% endif %}</div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- 第三行：解析历史 -->
+        <details class="hist">
+          <summary>第三行 · 解析历史（1 个版本）▾</summary>
+          <div class="ver">
+            <div class="vh">v1 · 基线 · 当前解析器（改解析器前的状态）</div>
+            <div class="vv">
+              {% if up %}${{ '%.2f'|format(up) }} / {{ r.unit_norm }}{% else %}无单价{% endif %}
+              &nbsp;·&nbsp;
+              {% for f in r.faults %}{{ f.label }}{% if not loop.last %} · {% endif %}{% else %}无故障码{% endfor %}
+              &nbsp;·&nbsp;<span style="color:#6e6e73">未裁定</span>
+            </div>
+          </div>
+          <div class="note">
+            改一次解析器就多一层。裁定（确认／误报）和手动增删故障码还没做——
+            先看这一版检测得准不准，再决定要不要它们。
+          </div>
+        </details>
+      </div>
+    </article>
+  {% endfor %}
+  </div>
+
+  <div class="empty" id="empty" hidden>没有符合条件的条目</div>
+</div>
+
+<script>
+const items = [...document.querySelectorAll('.item')];
+const chips = [...document.querySelectorAll('.chip')];
+const fStore = document.getElementById('f-store');
+const fState = document.getElementById('f-state');
+const fQ     = document.getElementById('f-q');
+const active = new Set();
+
+function apply(){
+  const store = fStore.value, state = fState.value;
+  const q = fQ.value.trim().toLowerCase();
+  let n = 0;
+  for (const el of items){
+    const codes = el.dataset.codes ? el.dataset.codes.split(' ') : [];
+    let ok = true;
+    if (store && el.dataset.store !== store) ok = false;
+    if (ok && state === 'faulty' && codes.length === 0) ok = false;
+    if (ok && state === 'clean'  && codes.length > 0)  ok = false;
+    if (ok && active.size && ![...active].every(c => codes.includes(c))) ok = false;
+    if (ok && q && !el.dataset.q.includes(q)) ok = false;
+    el.hidden = !ok;
+    if (ok) n++;
+  }
+  document.getElementById('count').textContent = n + ' / ' + items.length + ' 条';
+  document.getElementById('empty').hidden = n > 0;
+}
+
+chips.forEach(c => c.addEventListener('click', () => {
+  const code = c.dataset.code;
+  active.has(code) ? active.delete(code) : active.add(code);
+  c.setAttribute('aria-pressed', active.has(code));
+  apply();
+}));
+
+// Clicking the top row opens rows 2 and 3. The details element inside stops
+// its own clicks so opening the history does not collapse the item.
+items.forEach(el => {
+  el.querySelector('.r1').addEventListener('click', () => el.classList.toggle('open'));
+});
+document.querySelectorAll('.hist').forEach(d => d.addEventListener('click', e => e.stopPropagation()));
+
+[fStore, fState].forEach(s => s.addEventListener('change', apply));
+fQ.addEventListener('input', apply);
+document.getElementById('reset').addEventListener('click', () => {
+  active.clear(); chips.forEach(c => c.setAttribute('aria-pressed', false));
+  fStore.value = ''; fState.value = ''; fQ.value = ''; apply();
+});
+apply();
+</script>
+</body>
+</html>

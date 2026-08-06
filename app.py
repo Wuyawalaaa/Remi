@@ -6,6 +6,7 @@ import uuid
 import sqlite3
 
 import pipeline_status
+import console_faults
 import difflib
 from collections import Counter
 from datetime import date, datetime, timedelta
@@ -272,6 +273,34 @@ def index():
     return render_template("index.html", stores=all_stores(), categories=categories,
                            status=pipeline_status.overall(DB_PATH),
                            deals=all_deals, sample=sample)
+
+
+@app.route("/console")
+def console():
+    """Parsed result next to the text it came from. An inspection surface, not a
+    triage queue -- the codes are a filter over everything, never the whole list,
+    because a page that only shows what the detector already knows about cannot
+    surface the classes nobody has thought of yet."""
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    rows = [dict(r) for r in con.execute(
+        """SELECT d.*, b.valid_from AS b_from, b.valid_to AS b_to
+           FROM deals d JOIN batches b ON d.batch_id = b.id
+           WHERE b.status = 'published'
+           ORDER BY d.store_name, d.product_name"""
+    )]
+    con.close()
+
+    for r in rows:
+        r["faults"] = [f.as_dict() for f in console_faults.detect(r)]
+
+    return render_template(
+        "console.html",
+        rows=rows,
+        summary=console_faults.summarise(rows),
+        stores=sorted({r["store_name"] for r in rows}),
+        n_faulty=sum(1 for r in rows if r["faults"]),
+    )
 
 
 @app.route("/api/deals")
