@@ -275,12 +275,15 @@ def index():
                            deals=all_deals, sample=sample)
 
 
-@app.route("/console")
-def console():
+@app.route("/inspect")
+def inspect_deals():
     """Parsed result next to the text it came from. An inspection surface, not a
     triage queue -- the codes are a filter over everything, never the whole list,
     because a page that only shows what the detector already knows about cannot
-    surface the classes nobody has thought of yet."""
+    surface the classes nobody has thought of yet.
+
+    Not /console: Werkzeug's debugger claims that path for its own interactive
+    console in debug mode and silently shadows the route."""
     con = sqlite3.connect(DB_PATH)
     con.row_factory = sqlite3.Row
     rows = [dict(r) for r in con.execute(
@@ -294,11 +297,21 @@ def console():
     for r in rows:
         r["faults"] = [f.as_dict() for f in console_faults.detect(r)]
 
+    # Sent as JSON and rendered client-side. Server-rendering all 653 rows with
+    # their detail panels produced 1.6 MB and ~26k nodes, and the page stopped
+    # responding. Only the rows in view get built now.
+    keep = ("id", "store_name", "product_name", "brand", "price_flyer",
+            "unit_flyer", "per_unit_volume", "package_amount",
+            "normalized_price", "unit_norm", "deal_type", "deal_conditions",
+            "b_from", "b_to", "faults")
+    payload = [{k: r.get(k) for k in keep} for r in rows]
+
     return render_template(
         "console.html",
-        rows=rows,
+        payload=payload,
         summary=console_faults.summarise(rows),
         stores=sorted({r["store_name"] for r in rows}),
+        n_total=len(rows),
         n_faulty=sum(1 for r in rows if r["faults"]),
     )
 
