@@ -256,8 +256,12 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 }
 
 /* ── Deals tab: parse inspection ──────────────────────────────────────────────
-   Prefixed .in-* so it cannot collide with the shopping-view styles that the
-   rest of this file still serves. */
+   Prefixed .in-* so it cannot collide with what still serves the Assistant tab.
+
+   Row 1 is a wide grid rather than four summary fields. The old deals table
+   carried ten columns and truncated some of them; a row showing four cannot
+   tell you which of the other six is wrong, and finding that out is the whole
+   point of this page. Rows 2 and 3 each take the full width below it. */
 
 .in-sub{color:#6e6e73;font-size:12.5px;margin:0 0 16px}
 .in-sub b{color:#ff9a91}
@@ -276,44 +280,71 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 .in-conf.guess{background:#3a2a12;color:#ffb454}
 
 .in-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 4px;padding:10px 0;
-  border-top:1px solid #232325;border-bottom:1px solid #232325}
+  border-top:1px solid #1c1c1f;border-bottom:1px solid #1c1c1f}
 .in-bar select,.in-bar input[type=search]{background:#0d0d0f;border:1px solid #232327;
   color:#e6e6ea;border-radius:7px;padding:6px 9px;font:inherit;font-size:12.5px}
-.in-bar input[type=search]{min-width:230px}
+.in-bar input[type=search]{min-width:210px}
 .in-reset{background:none;border:none;color:#6e6e73;cursor:pointer;font:inherit;
   font-size:12px;text-decoration:underline}
 .in-count{margin-left:auto;color:#6e6e73;font-size:12px;font-variant-numeric:tabular-nums}
 
-.in-item{border-bottom:1px solid #1c1c1f}
-.in-r1{display:grid;grid-template-columns:1fr 200px 155px;gap:14px;align-items:start;
-  padding:11px 4px;cursor:pointer}
-.in-r1:hover{background:#0d0d0f}
-.in-name{font-weight:550;color:#e6e6ea}
-.in-store{color:#6e6e73;font-size:11px;margin-left:8px;font-weight:400}
-.in-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
-.in-tag{font-size:10.5px;padding:1.5px 7px;border-radius:5px;
+/* ── row 1: the grid ─────────────────────────────────────────────────────── */
+/* store name cat pkg price orig deal cond unit-price valid | codes */
+.in-head,.in-r1{
+  display:grid;
+  grid-template-columns:74px minmax(150px,1.5fr) 68px 84px 92px 58px 96px minmax(110px,1fr) 96px 82px;
+  gap:10px;align-items:baseline;padding:9px 6px}
+.in-head{color:#6e6e73;font-size:10.5px;font-weight:600;letter-spacing:.04em;
+  border-bottom:1px solid #1c1c1f;position:sticky;top:0;background:#000;z-index:2;
+  padding-top:12px;padding-bottom:8px}
+.in-head .c-tags,.in-r1 .c-tags{grid-column:1/-1}
+
+.in-item{border-bottom:1px solid #141416}
+.in-item.edited{box-shadow:inset 2px 0 0 #4ec98a}
+.in-r1{cursor:pointer;font-size:12px;font-variant-numeric:tabular-nums}
+.in-r1:hover{background:#0b0b0d}
+.in-r1>div{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.c-store{color:#8e8e93;font-size:11px}
+.c-name{font-weight:550;color:#e6e6ea;font-size:12.5px;font-variant-numeric:normal}
+.c-cat,.c-pkg,.c-orig,.c-deal,.c-cond,.c-valid{color:#8e8e93;font-size:11px}
+.c-valid{line-height:1.35;white-space:normal;font-size:10px}
+.c-price{color:#e6e6ea}
+.in-u{color:#6e6e73}
+.c-up{color:#e6e6ea;font-weight:550}
+.c-up.nil{color:#6e6e73;font-weight:400}
+.in-nil{color:#3a3a40}
+
+/* ── editable fault codes ────────────────────────────────────────────────── */
+.in-tags{display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding-top:2px}
+.in-tag{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;
+  padding:2px 4px 2px 8px;border-radius:5px;
   background:#3a1d1a;color:#ff9a91;border:1px solid #4d2622}
 .in-tag.guess{background:#3a2a12;color:#ffb454;border-color:#4d3a18}
-.in-clean{font-size:10.5px;color:#4ec98a;opacity:.65}
-.in-parsed{color:#9a9aa0;font-size:12px;font-variant-numeric:tabular-nums;padding-top:1px}
-.in-up{font-variant-numeric:tabular-nums;font-size:12.5px;padding-top:1px;color:#e6e6ea}
-.in-up.none{color:#6e6e73}
+.in-tag.manual{background:#122b3a;color:#7cc4ff;border-color:#1d3f52}
+.in-tag.off{background:#141416;color:#5a5a60;border-color:#232327;text-decoration:line-through}
+.in-tag.off i{font-style:normal;text-decoration:none;color:#6e6e73;font-size:9.5px}
+.in-x{background:none;border:none;color:inherit;opacity:.55;cursor:pointer;
+  font:inherit;font-size:11px;padding:0 2px;line-height:1}
+.in-x:hover{opacity:1}
+.in-add{background:none;border:1px dashed #2f2f35;color:#6e6e73;border-radius:5px;
+  cursor:pointer;font:inherit;font-size:11px;padding:1px 7px;line-height:1.5}
+.in-add:hover{border-color:#5a5a63;color:#9a9aa0}
 
-.in-body{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:2px 4px 20px}
-.in-box h4{margin:0 0 7px;font-size:11px;color:#6e6e73;font-weight:600;letter-spacing:.04em}
-.in-box pre{margin:0;background:#0b0b0d;border:1px solid #1c1c20;border-radius:8px;
+/* ── rows 2 and 3: stacked, each full width ──────────────────────────────── */
+.in-body{padding:0 6px 18px;border-top:1px solid #141416}
+.in-row2,.in-row3{padding:14px 0 4px}
+.in-row3{border-top:1px solid #141416;margin-top:10px}
+.in-body h4{margin:0 0 8px;font-size:11px;color:#6e6e73;font-weight:600;letter-spacing:.04em}
+.in-body pre{margin:0;background:#0b0b0d;border:1px solid #1c1c20;border-radius:8px;
   padding:11px 13px;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
   color:#c9c9cf;white-space:pre-wrap;word-break:break-word}
-.in-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:12.5px;margin:0}
-.in-kv dt{color:#6e6e73}
-.in-kv dd{margin:0;font-variant-numeric:tabular-nums;color:#e6e6ea}
-.in-why{margin-top:10px;font-size:12px;color:#ffb0a8;line-height:1.7}
+.in-meta{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:9px;
+  color:#8e8e93;font-size:11.5px}
+.in-why{margin-top:11px;font-size:12px;color:#ffb0a8;line-height:1.7}
 .in-why b{color:#ff8b80}
-.in-note{color:#6e6e73;font-size:11.5px;margin-top:8px;line-height:1.6}
+.in-note{color:#6e6e73;font-size:11.5px;margin-top:9px;line-height:1.6}
 .in-dim{color:#6e6e73}
-.in-hist{grid-column:1/-1}
-.in-hist summary{cursor:pointer;color:#6e6e73;font-size:11.5px;padding:5px 0}
-.in-ver{border-left:2px solid #2a2a2e;padding:6px 0 6px 12px;margin:6px 0 0}
+.in-ver{border-left:2px solid #26262b;padding:6px 0 6px 12px}
 .in-vh{font-size:11.5px;color:#9a9aa0}
 .in-vv{font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:2px;color:#e6e6ea}
 
@@ -323,7 +354,18 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 .in-more:hover{border-color:#3d3d43}
 .in-empty{padding:50px 0;text-align:center;color:#6e6e73}
 
-@media (max-width:820px){
-  .in-r1{grid-template-columns:1fr}
-  .in-body{grid-template-columns:1fr}
+@media (max-width:1100px){
+  .in-head{display:none}
+  .in-r1{grid-template-columns:1fr 1fr 1fr;gap:4px 12px}
+  .in-r1 .c-name{grid-column:1/-1}
 }
+
+/* Fault-code picker. A popover, not a modal: prompt() blocks the whole page and
+   what was asked for is a Notion-style multi-select. */
+.in-pop{position:absolute;z-index:50;background:#141417;border:1px solid #2f2f35;
+  border-radius:9px;padding:4px;min-width:150px;max-width:250px;
+  box-shadow:0 8px 28px rgba(0,0,0,.65)}
+.in-pop button{display:block;width:100%;text-align:left;background:none;border:none;
+  color:#e6e6ea;font:inherit;font-size:12.5px;padding:6px 9px;border-radius:6px;cursor:pointer}
+.in-pop button:hover{background:#232327}
+.in-pop button i{display:block;font-style:normal;color:#6e6e73;font-size:10.5px;margin-top:2px}

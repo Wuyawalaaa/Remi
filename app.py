@@ -7,6 +7,7 @@ import sqlite3
 
 import pipeline_status
 import console_faults
+import console_marks
 import difflib
 from collections import Counter
 from datetime import date, datetime, timedelta
@@ -193,21 +194,48 @@ def _inspection_payload():
     )]
     con.close()
 
+    marks = console_marks.load(DB_PATH)
     for r in rows:
-        r["faults"] = [f.as_dict() for f in console_faults.detect(r)]
+        detected = [f.as_dict() for f in console_faults.detect(r)]
+        r["faults"], r["dismissed"] = console_marks.apply(
+            detected, marks.get(r["id"]), console_faults.CATALOG)
 
-    keep = ("id", "store_name", "product_name", "brand", "price_flyer",
-            "unit_flyer", "per_unit_volume", "package_amount",
+    keep = ("id", "store_name", "product_name", "brand", "category",
+            "price_flyer", "unit_flyer", "original_price",
+            "per_unit_volume", "package_amount",
             "normalized_price", "unit_norm", "deal_type", "deal_conditions",
-            "b_from", "b_to", "faults")
+            "b_from", "b_to", "faults", "dismissed")
 
     return {
         "payload": [{k: r.get(k) for k in keep} for r in rows],
         "fault_summary": console_faults.summarise(rows),
+        "catalog": console_faults.CATALOG,
         "stores": sorted({r["store_name"] for r in rows}),
         "n_total": len(rows),
         "n_faulty": sum(1 for r in rows if r["faults"]),
     }
+
+
+@app.route("/api/fault-mark", methods=["POST"])
+def api_fault_mark():
+    """Add, dismiss, or undo one fault code on one deal.
+
+    Dismissing insists on a reason. "The code is gone" otherwise means both
+    "the rule was wrong" and "the fault was real and is handled", and once those
+    are mixed there is no way back to a false-positive rate."""
+    d = request.get_json(force=True)
+    deal_id, code, action = d.get("deal_id"), d.get("code"), d.get("action")
+    if not deal_id or not code:
+        return jsonify({"error": "deal_id 和 code 必填"}), 400
+    try:
+        if action == "clear":
+            console_marks.clear(DB_PATH, deal_id, code)
+        else:
+            console_marks.put(DB_PATH, deal_id, code, action,
+                              d.get("verdict"), d.get("note"))
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    return jsonify({"ok": True})
 
 
 @app.route("/")

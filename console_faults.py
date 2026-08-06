@@ -44,6 +44,22 @@ STATED_UNIT_PRICE = re.compile(
 LB_PER_OZ = 16.0
 
 
+# Every code the UI can offer for hand-adding. Not a closed list -- when a
+# pattern keeps getting added by hand it has earned a rule in detect() instead.
+CATALOG = {
+    "NO_PRICE":          {"label": "无价格"},
+    "NO_UNIT":           {"label": "无单位"},
+    "SIZE_MISSING":      {"label": "规格缺失"},
+    "COUNT_IGNORED":     {"label": "数量被忽略"},
+    "CONTRADICTION":     {"label": "自相矛盾"},
+    "CONDITIONAL_PRICE": {"label": "价格带条件"},
+    "MULTI_PRODUCT":     {"label": "疑似多商品同格"},
+    "WRONG_NAME":        {"label": "商品名不对"},
+    "WRONG_UNIT":        {"label": "单位不对"},
+    "OTHER":             {"label": "其他问题"},
+}
+
+
 class Fault:
     __slots__ = ("code", "label", "rule", "confidence", "detail")
 
