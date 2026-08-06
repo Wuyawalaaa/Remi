@@ -1,7 +1,7 @@
-let activeStore    = "";
-let activeCategory = "";
-let activeSearch   = "";
-let activeTab      = "deals";
+let activeTab = "deals";
+
+// The deals tab is now the parse-inspection view; its list, filters and search
+// live in inspect.js. What stayed here is tab switching and the chat prototype.
 
 const tabButtons = Array.from(document.querySelectorAll(".view-tab"));
 const tabPanels  = Array.from(document.querySelectorAll(".tab-panel"));
@@ -38,123 +38,6 @@ window.addEventListener("hashchange", () => {
   setActiveTab(hashTab, false);
 });
 
-// ── Filter chip clicks ────────────────────────────────────────────────────────
-
-document.getElementById("store-filters").addEventListener("click", e => {
-  const chip = e.target.closest(".chip");
-  if (!chip) return;
-  document.querySelectorAll("#store-filters .chip").forEach(c => c.classList.remove("active"));
-  chip.classList.add("active");
-  activeStore = chip.dataset.value;
-  loadDeals();
-});
-
-document.getElementById("category-filters").addEventListener("click", e => {
-  const chip = e.target.closest(".chip");
-  if (!chip) return;
-  document.querySelectorAll("#category-filters .chip").forEach(c => c.classList.remove("active"));
-  chip.classList.add("active");
-  activeCategory = chip.dataset.value;
-  loadDeals();
-});
-
-// ── Search ────────────────────────────────────────────────────────────────────
-
-document.getElementById("search-input").addEventListener("input", e => {
-  activeSearch = e.target.value.trim().toLowerCase();
-  loadDeals();
-});
-
-// ── Data loading ──────────────────────────────────────────────────────────────
-
-async function loadDeals() {
-  const params = new URLSearchParams();
-  if (activeStore)    params.set("store",    activeStore);
-  if (activeCategory) params.set("category", activeCategory);
-
-  const res   = await fetch("/api/deals?" + params.toString());
-  let   deals = await res.json();
-
-  if (activeSearch) {
-    deals = deals.filter(d => d.product_name.toLowerCase().includes(activeSearch));
-  }
-
-  renderDeals(deals);
-}
-
-// ── Rendering ─────────────────────────────────────────────────────────────────
-
-function formatSalePrice(deal) {
-  if (deal.price_flyer != null) return "$" + parseFloat(deal.price_flyer).toFixed(2) + (deal.unit_flyer ? " / " + deal.unit_flyer : "");
-  return "—";
-}
-
-function formatNormPrice(deal) {
-  if (!deal.normalized_price || !deal.unit_norm) return "—";
-  const unit = deal.unit_norm;
-  const decimals = unit === "ml" ? 4 : 2;
-  return "$" + parseFloat(deal.normalized_price).toFixed(decimals) + " / " + unit;
-}
-
-function renderDeals(deals) {
-  const tbody      = document.getElementById("deals-tbody");
-  const emptyState = document.getElementById("empty-state");
-  const countEl    = document.getElementById("deal-count");
-
-  tbody.innerHTML = "";
-
-  if (deals.length === 0) {
-    emptyState.style.display = "block";
-    countEl.textContent = "0 deals";
-    return;
-  }
-
-  emptyState.style.display = "none";
-  countEl.textContent = deals.length + " deal" + (deals.length !== 1 ? "s" : "");
-
-  deals.forEach(deal => {
-    const tr = document.createElement("tr");
-
-    const discPct = deal.discount_percentage
-      ? Math.round(deal.discount_percentage)
-      : (deal.original_price && deal.price_flyer && deal.original_price > deal.price_flyer
-          ? Math.round((1 - deal.price_flyer / deal.original_price) * 100)
-          : null);
-
-    const tags = (deal.quality_tags || []).map(t => `<span class="quality-tag">${t}</span>`).join("");
-    const namePrefix = deal.normalized_price == null ? "🚨 " : "";
-    const nameHtml = namePrefix + deal.product_name + (tags ? `<div class="quality-tags" style="margin-top:4px">${tags}</div>` : "");
-
-    const dealHtml = discPct
-      ? `<span class="discount-badge">-${discPct}%</span>${deal.deal_type ? ` <span class="deal-cond">${deal.deal_type}</span>` : ""}`
-      : (deal.deal_type ? `<span class="deal-cond">${deal.deal_type}</span>` : "—");
-
-    const normHtml = deal.normalized_price
-      ? formatNormPrice(deal)
-      : `<span class="norm-missing">—</span>`;
-
-    const origHtml = deal.original_price ? "$" + parseFloat(deal.original_price).toFixed(2) : "—";
-    const validHtml = deal.valid_from && deal.valid_to
-      ? deal.valid_from.slice(5) + " – " + deal.valid_to.slice(5)
-      : "—";
-    const packageLabel = deal.package_label || "—";
-    const conditionsLabel = deal.deal_conditions || "—";
-
-    tr.innerHTML = `
-      <td><span class="store-badge">${deal.store_name}</span></td>
-      <td class="col-product">${nameHtml}</td>
-      <td><span class="category-tag">${deal.category || "—"}</span></td>
-      <td class="col-pkg" title="${escapeHtml(packageLabel)}">${packageLabel}</td>
-      <td class="col-price">${formatSalePrice(deal)}</td>
-      <td class="col-orig">${origHtml}</td>
-      <td>${dealHtml}</td>
-      <td class="col-cond" title="${escapeHtml(conditionsLabel)}">${conditionsLabel}</td>
-      <td class="col-norm">${normHtml}</td>
-      <td class="col-valid">${validHtml}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
 
 function escapeHtml(value) {
   return String(value)
@@ -166,7 +49,6 @@ function escapeHtml(value) {
 
 // ── Initial load ──────────────────────────────────────────────────────────────
 setActiveTab(window.location.hash === "#assistant" ? "assistant" : "deals", false);
-loadDeals();
 
 // ── Chat agent ────────────────────────────────────────────────────────────────
 

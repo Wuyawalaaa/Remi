@@ -244,6 +244,41 @@ def get_available_stores():
     return [r[0] for r in rows]
 
 
+def _inspection_payload():
+    """Published deals with a fault code per disagreement between the parsed
+    fields and the text they were parsed from.
+
+    Sent to the browser as JSON rather than rendered here. Server-rendering all
+    653 rows with their detail panels came to 1.6 MB and ~26k nodes and the page
+    stopped responding -- expand-on-demand only pays off if the hidden half is
+    genuinely not built."""
+    con = sqlite3.connect(DB_PATH)
+    con.row_factory = sqlite3.Row
+    rows = [dict(r) for r in con.execute(
+        """SELECT d.*, b.valid_from AS b_from, b.valid_to AS b_to
+           FROM deals d JOIN batches b ON d.batch_id = b.id
+           WHERE b.status = 'published'
+           ORDER BY d.store_name, d.product_name"""
+    )]
+    con.close()
+
+    for r in rows:
+        r["faults"] = [f.as_dict() for f in console_faults.detect(r)]
+
+    keep = ("id", "store_name", "product_name", "brand", "price_flyer",
+            "unit_flyer", "per_unit_volume", "package_amount",
+            "normalized_price", "unit_norm", "deal_type", "deal_conditions",
+            "b_from", "b_to", "faults")
+
+    return {
+        "payload": [{k: r.get(k) for k in keep} for r in rows],
+        "fault_summary": console_faults.summarise(rows),
+        "stores": sorted({r["store_name"] for r in rows}),
+        "n_total": len(rows),
+        "n_faulty": sum(1 for r in rows if r["faults"]),
+    }
+
+
 @app.route("/")
 def index():
     all_deals  = get_deals()
@@ -270,50 +305,11 @@ def index():
         except Exception:
             sample["quality_tags"] = []
 
-    return render_template("index.html", stores=all_stores(), categories=categories,
+    inspect = _inspection_payload()
+
+    return render_template("index.html", categories=categories,
                            status=pipeline_status.overall(DB_PATH),
-                           deals=all_deals, sample=sample)
-
-
-@app.route("/inspect")
-def inspect_deals():
-    """Parsed result next to the text it came from. An inspection surface, not a
-    triage queue -- the codes are a filter over everything, never the whole list,
-    because a page that only shows what the detector already knows about cannot
-    surface the classes nobody has thought of yet.
-
-    Not /console: Werkzeug's debugger claims that path for its own interactive
-    console in debug mode and silently shadows the route."""
-    con = sqlite3.connect(DB_PATH)
-    con.row_factory = sqlite3.Row
-    rows = [dict(r) for r in con.execute(
-        """SELECT d.*, b.valid_from AS b_from, b.valid_to AS b_to
-           FROM deals d JOIN batches b ON d.batch_id = b.id
-           WHERE b.status = 'published'
-           ORDER BY d.store_name, d.product_name"""
-    )]
-    con.close()
-
-    for r in rows:
-        r["faults"] = [f.as_dict() for f in console_faults.detect(r)]
-
-    # Sent as JSON and rendered client-side. Server-rendering all 653 rows with
-    # their detail panels produced 1.6 MB and ~26k nodes, and the page stopped
-    # responding. Only the rows in view get built now.
-    keep = ("id", "store_name", "product_name", "brand", "price_flyer",
-            "unit_flyer", "per_unit_volume", "package_amount",
-            "normalized_price", "unit_norm", "deal_type", "deal_conditions",
-            "b_from", "b_to", "faults")
-    payload = [{k: r.get(k) for k in keep} for r in rows]
-
-    return render_template(
-        "console.html",
-        payload=payload,
-        summary=console_faults.summarise(rows),
-        stores=sorted({r["store_name"] for r in rows}),
-        n_total=len(rows),
-        n_faulty=sum(1 for r in rows if r["faults"]),
-    )
+                           deals=all_deals, sample=sample, **inspect)
 
 
 @app.route("/api/deals")

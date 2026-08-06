@@ -132,58 +132,46 @@
       </details>
       {% endif %}
 
-      <div class="search-bar">
-        <input type="text" id="search-input" placeholder="Search deals…" autocomplete="off" />
+      {# The deals list is an inspection surface, not a shopping view. The fault
+         codes are a filter over everything, never the list itself -- a page that
+         shows only what the detector already knows about cannot surface the
+         classes nobody has thought of yet, and every class found so far was
+         found by scrolling raw data. #}
+      <p class="in-sub">
+        {{ n_total }} 条已发布数据 · <b>{{ n_faulty }}</b> 条至少命中一个故障码 ·
+        解析器版本 v1（基线）
+      </p>
+
+      <div class="in-codes">
+        {% for code, label, rule, conf, n in fault_summary %}
+        <button class="in-chip" data-code="{{ code }}" aria-pressed="false">
+          <span class="in-n">{{ n }}</span><span class="in-lab">{{ label }}</span>
+          <span class="in-rule">{{ rule }}</span>
+          <span class="in-conf {{ 'guess' if '启发' in conf else '' }}">{{ conf }}</span>
+        </button>
+        {% endfor %}
       </div>
 
-      <section class="filters">
-        <div class="filter-group">
-          <span class="filter-label">Store</span>
-          <div class="filter-chips" id="store-filters">
-            <button class="chip active" data-value="">All</button>
-            {% for store in stores %}
-            <button class="chip" data-value="{{ store }}">{{ store }}</button>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <span class="filter-label">Category</span>
-          <div class="filter-chips" id="category-filters">
-            <button class="chip active" data-value="">All</button>
-            {% for cat in categories %}
-            <button class="chip" data-value="{{ cat }}">{{ cat | capitalize }}</button>
-            {% endfor %}
-          </div>
-        </div>
-      </section>
-
-      <div class="stats-bar">
-        <span id="deal-count">Loading...</span>
+      <div class="in-bar">
+        <select id="in-store"><option value="">全部店</option>
+          {% for s in stores %}<option>{{ s }}</option>{% endfor %}</select>
+        <select id="in-state"><option value="">全部条目</option>
+          <option value="faulty">仅有故障码的</option>
+          <option value="clean">仅干净的</option></select>
+        <select id="in-sort"><option value="">默认排序</option>
+          <option value="up-desc">单价从高到低</option>
+          <option value="up-asc">单价从低到高</option>
+          <option value="n-desc">故障码最多的在前</option></select>
+        <input type="search" id="in-q" placeholder="搜商品名 / 原文…">
+        <button class="in-reset" id="in-reset">清空</button>
+        <span class="in-count" id="in-count"></span>
       </div>
 
-      <div class="table-wrap">
-        <table class="deals-table" id="deals-table">
-          <thead>
-            <tr>
-              <th>Store</th>
-              <th>Product</th>
-              <th>Category</th>
-              <th>Package</th>
-              <th>Price</th>
-              <th>Orig. price</th>
-              <th>Deal</th>
-              <th>Conditions</th>
-              <th>Normalized price</th>
-              <th>Valid</th>
-            </tr>
-          </thead>
-          <tbody id="deals-tbody"></tbody>
-        </table>
-        <div class="empty-state" id="empty-state" style="display:none;">
-          No deals found for this filter.
-        </div>
-      </div>
+      <div id="in-list"></div>
+      <button class="in-more" id="in-more" hidden></button>
+      <div class="in-empty" id="in-empty" hidden>没有符合条件的条目</div>
+
+      <script id="in-data" type="application/json">{{ payload|tojson }}</script>
     </section>
 
     <section class="tab-panel" id="panel-assistant" data-panel="assistant" role="tabpanel" aria-labelledby="tab-assistant" hidden>
@@ -213,5 +201,6 @@
   </main>
 
   <script src="/static/script.js"></script>
+  <script src="/static/inspect.js"></script>
 </body>
 </html>
