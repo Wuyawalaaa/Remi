@@ -5,17 +5,17 @@
    product names were unreadable. */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
-  background: #0e0e10;
+  background: #000;
   color: #e6e6ea;
   min-height: 100vh;
 }
 
 /* Header */
 header {
-  background: #141417;
+  background: #0c0c0e;
   color: #fff;
   padding: 24px 20px;
-  border-bottom: 1px solid #232325;
+  border-bottom: 1px solid #1c1c1f;
 }
 .header-inner { max-width: 1200px; margin: 0 auto; }
 header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
@@ -30,8 +30,8 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
   gap: 8px;
   margin-bottom: 20px;
   padding: 4px;
-  background: #1a1a1d;
-  border: 1px solid #26262a;
+  background: #101012;
+  border: 1px solid #1f1f23;
   border-radius: 16px;
 }
 .view-tab {
@@ -47,7 +47,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 .view-tab.active {
-  background: #303036;
+  background: #26262b;
   color: #fff;
   box-shadow: none;
 }
@@ -60,7 +60,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 
 /* ── Chat panel ─────────────────────────────────────────────────────────────── */
 .chat-panel {
-  background: #141417;
+  background: #0c0c0e;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.1);
   display: flex;
@@ -69,7 +69,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
   max-width: 760px;
 }
 .chat-header {
-  background: #303036;
+  background: #26262b;
   padding: 14px 16px;
 }
 .chat-title {
@@ -99,13 +99,13 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
   line-height: 1.45;
 }
 .chat-bubble.user {
-  background: #303036;
+  background: #26262b;
   color: #fff;
   align-self: flex-end;
   border-bottom-right-radius: 4px;
 }
 .chat-bubble.assistant {
-  background: #232327;
+  background: #17171a;
   color: #e6e6ea;
   align-self: flex-start;
   border-bottom-left-radius: 4px;
@@ -121,7 +121,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
   display: flex;
   gap: 8px;
   padding: 12px 14px;
-  border-top: 1px solid #232325;
+  border-top: 1px solid #1c1c1f;
 }
 .chat-input-row input {
   flex: 1;
@@ -139,7 +139,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
   padding: 8px 16px;
   border-radius: 20px;
   border: none;
-  background: #303036;
+  background: #26262b;
   color: #fff;
   font-size: 13px;
   font-weight: 600;
@@ -153,7 +153,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 
 /* ── Shopping list panel ─────────────────────────────────────────────────────── */
 .shopping-list-panel {
-  background: #141417;
+  background: #0c0c0e;
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.1);
   overflow: hidden;
@@ -165,7 +165,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #232325;
+  border-bottom: 1px solid #1c1c1f;
 }
 .list-title {
   font-size: 14px;
@@ -263,11 +263,11 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 .in-sub b{color:#ff9a91}
 
 .in-codes{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
-.in-chip{background:#1a1a1d;border:1px solid #2a2a2e;border-radius:9px;padding:8px 11px;
+.in-chip{background:#0d0d0f;border:1px solid #232327;border-radius:9px;padding:8px 11px;
   cursor:pointer;text-align:left;color:#e6e6ea;font:inherit;max-width:300px;
   transition:border-color .12s,background .12s}
 .in-chip:hover{border-color:#3d3d43}
-.in-chip[aria-pressed="true"]{background:#242429;border-color:#6a6a73}
+.in-chip[aria-pressed="true"]{background:#1c1c21;border-color:#6a6a73}
 .in-n{font-size:16px;font-weight:650}
 .in-lab{font-size:12.5px;margin-left:6px}
 .in-rule{display:block;color:#6e6e73;font-size:10.5px;margin-top:3px;line-height:1.4}
@@ -277,7 +277,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 
 .in-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 4px;padding:10px 0;
   border-top:1px solid #232325;border-bottom:1px solid #232325}
-.in-bar select,.in-bar input[type=search]{background:#161619;border:1px solid #2a2a2e;
+.in-bar select,.in-bar input[type=search]{background:#0d0d0f;border:1px solid #232327;
   color:#e6e6ea;border-radius:7px;padding:6px 9px;font:inherit;font-size:12.5px}
 .in-bar input[type=search]{min-width:230px}
 .in-reset{background:none;border:none;color:#6e6e73;cursor:pointer;font:inherit;
@@ -287,7 +287,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 .in-item{border-bottom:1px solid #1c1c1f}
 .in-r1{display:grid;grid-template-columns:1fr 200px 155px;gap:14px;align-items:start;
   padding:11px 4px;cursor:pointer}
-.in-r1:hover{background:#151518}
+.in-r1:hover{background:#0d0d0f}
 .in-name{font-weight:550;color:#e6e6ea}
 .in-store{color:#6e6e73;font-size:11px;margin-left:8px;font-weight:400}
 .in-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
@@ -301,7 +301,7 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 
 .in-body{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:2px 4px 20px}
 .in-box h4{margin:0 0 7px;font-size:11px;color:#6e6e73;font-weight:600;letter-spacing:.04em}
-.in-box pre{margin:0;background:#141417;border:1px solid #202024;border-radius:8px;
+.in-box pre{margin:0;background:#0b0b0d;border:1px solid #1c1c20;border-radius:8px;
   padding:11px 13px;font:12px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace;
   color:#c9c9cf;white-space:pre-wrap;word-break:break-word}
 .in-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 14px;font-size:12.5px;margin:0}
@@ -317,8 +317,8 @@ main { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
 .in-vh{font-size:11.5px;color:#9a9aa0}
 .in-vv{font-size:12.5px;font-variant-numeric:tabular-nums;margin-top:2px;color:#e6e6ea}
 
-.in-more{display:block;width:100%;margin:18px 0 0;padding:11px;background:#18181b;
-  border:1px solid #26262a;border-radius:9px;color:#9a9aa0;font:inherit;
+.in-more{display:block;width:100%;margin:18px 0 0;padding:11px;background:#0d0d0f;
+  border:1px solid #232327;border-radius:9px;color:#9a9aa0;font:inherit;
   font-size:12.5px;cursor:pointer}
 .in-more:hover{border-color:#3d3d43}
 .in-empty{padding:50px 0;text-align:center;color:#6e6e73}
