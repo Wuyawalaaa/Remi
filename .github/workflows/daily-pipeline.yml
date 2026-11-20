@@ -1,0 +1,58 @@
+# 每天自动抓传单，抓到的数据存回这个仓库。
+# 2026-11-20 起取代本机的 launchd 任务 com.remi.pipeline：那个任务绑在一台电脑的一个文件夹上，
+# 文件夹 2026-10-26 被搬走后静默失败了三周多，缺了三期传单。
+name: daily-pipeline
+
+on:
+  schedule:
+    - cron: "0 14 * * *"   # 每天 14:00 UTC，即太平洋时间早上 6 点（夏令时为 7 点）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TZ: America/Los_Angeles   # 「今天」按湾区的日期算，跳过判断和有效期都靠它
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - run: pip install -r requirements.txt
+
+      - name: 跑抓取
+        id: pipeline
+        # 有一家店失败时 run_pipeline.py 返回 1（99 Ranch 目前每次都失败，见 README）。
+        # 不让它挡住后面的存数据；失败留到最后一步再报。
+        run: |
+          set +e
+          python run_pipeline.py
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: 把抓到的数据存回仓库
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add database.db flyers
+          if git diff --cached --quiet; then
+            echo "没有新数据"
+          else
+            git commit -m "data: 每日抓取 $(date +%F)"
+            git push
+          fi
+
+      - name: 有店失败就把这次运行标红
+        if: steps.pipeline.outputs.code != '0'
+        run: |
+          echo "::error::有店抓取失败，详情看上面「跑抓取」一步的输出"
+          exit 1

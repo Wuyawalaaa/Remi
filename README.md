@@ -19,7 +19,7 @@
 Walong Marketing 的仓库（Buena Park，南加州），Mountain View 是 **1772**。抽 5 件商品实测，
 **5/5 价格都和湾区门店不同**，4/5 我们报的「特价」比湾区日常价还贵。
 
-**每天早上 6:00 自动跑**（`com.remi.pipeline`）。99 Ranch 那步会失败
+**每天早上 6:00 自动跑**，2026-11-20 起在 GitHub 上跑（`.github/workflows/daily-pipeline.yml`），抓到的数据自动提交回本仓库；不再依赖哪台电脑。本机的 launchd 任务 `com.remi.pipeline` 已停用：它指向的文件夹 2026-10-26 被搬走后静默失败，缺了 10-28、11-04、11-11 三期 Flipp 传单。99 Ranch 那步会失败
 （`themeId=18: API returned 0 products`——那个仓库板块空了）。
 
 ### 下次从这里开始
