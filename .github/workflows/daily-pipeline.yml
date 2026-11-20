@@ -32,11 +32,12 @@ jobs:
 
       - name: 跑抓取
         id: pipeline
-        # 有一家店失败时 run_pipeline.py 返回 1（99 Ranch 目前每次都失败，见 README）。
-        # 不让它挡住后面的存数据；失败留到最后一步再报。
+        # 只跑 Flipp 的三家。99 Ranch 的数据源是错的（见 README），那一步每次必失败；
+        # 带着它跑，这里每天都是红的，真出问题时反而看不出来。99 Ranch 改成读传单后把它加回来。
+        # 有店失败时 run_pipeline.py 返回 1；不让它挡住后面的存数据，失败留到最后一步再报。
         run: |
           set +e
-          python run_pipeline.py
+          python run_pipeline.py safeway cardenas hmart
           echo "code=$?" >> "$GITHUB_OUTPUT"
 
       - name: 把抓到的数据存回仓库
