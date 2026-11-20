@@ -28,10 +28,10 @@ Walong Marketing 的仓库（Buena Park，南加州），Mountain View 是 **177
 
 | 文档 | 回答 |
 |---|---|
-| `../docs/260807_Ingestion_Design_v3.md` | **怎么抓** —— 正确端点、覆盖范围、每日对账、已排除的五条路（别再查一遍）|
-| `../docs/260808_FieldAudit_v2.md` | **源上有什么** —— Flipp 56 / Ranch 商品库 51 字段，逐个留决定 |
-| `../docs/260828_FieldSet_v1.md` | **要抄哪些格子** —— 读传单的 21 个字段、怎么抄、已知硬伤 |
-| `../docs/260828_FieldsAudit_from_Requirements_v1.md` | **我们要回答什么** —— 七棵需求树 + 倒着验出来的缺口清单 |
+| `docs/260807_Ingestion_Design_v3.md` | **怎么抓** —— 正确端点、覆盖范围、每日对账、已排除的五条路（别再查一遍）|
+| `docs/260808_FieldAudit_v2.md` | **源上有什么** —— Flipp 56 / Ranch 商品库 51 字段，逐个留决定 |
+| `docs/260828_FieldSet_v1.md` | **要抄哪些格子** —— 读传单的 21 个字段、怎么抄、已知硬伤 |
+| `docs/260828_FieldsAudit_from_Requirements_v1.md` | **我们要回答什么** —— 七棵需求树 + 倒着验出来的缺口清单 |
 
 正确的数据源是**门店传单**，只有图，没有任何文字接口——只能用视觉模型读。
 已验证：11 页 231 条全跑通，`unmapped` **实测 4 条**
@@ -57,7 +57,7 @@ Walong Marketing 的仓库（Buena Park，南加州），Mountain View 是 **177
 **没落实的两条**：存 viewAd 的 `imageUrl` + ETag（旧图 URL 实测过期两周仍可访问，
 所以不用存图；哪天 404，每日对账会当天报）；轮换 6 个 API 密钥。
 
-### 待办（更详细的列表见 `../docs/`）
+### 待办（更详细的列表见 `docs/`）
 
 - **normalization —— 单位解析约有九分之一是错的**（原来排在「下一步」，8-07 让位给 99 Ranch 数据源，内容仍然成立）
 
@@ -150,7 +150,7 @@ Flipp 覆盖的湾区杂货店包括 Costco、Sprouts、Lucky、FoodMaxx、Groce
 |---|---|
 | `stores.py` | **唯一声明店铺的地方** |
 | `download_flipp_flyer.py` | 抓取所有 Flipp 商家 |
-| `download_99ranch_flyer.py` | 99 Ranch 自己的接口 —— **数据源错误，待改为读门店传单图**，见 `../docs/260807_Ingestion_Design_v3.md` 和 `../docs/260828_FieldSet_v1.md` |
+| `download_99ranch_flyer.py` | 99 Ranch 自己的接口 —— **数据源错误，待改为读门店传单图**，见 `docs/260807_Ingestion_Design_v3.md` 和 `docs/260828_FieldSet_v1.md` |
 | `parse_99ranch_deals.py` | 99 Ranch 的解析（Flipp 的抓取器直接产出成品，不需要单独解析）|
 | `deal_fields.py` | 各解析器共用的字段规范化 |
 | `import_to_database.py` | 入库 + 调用校验 |
@@ -213,5 +213,5 @@ Flipp 覆盖的湾区杂货店包括 Costco、Sprouts、Lucky、FoodMaxx、Groce
 ## 协作约定
 
 - 代码和文档进 git；生成的传单文件、日志、数据库、`.env` 不进
-- 规划文档在 `../docs/`（仓库之外，按 `YYMMDD_主题_版本` 命名）
+- 工程文档在 `docs/`（按 `YYMMDD_主题_版本` 命名）；产品层面的结论和文档在 Notion 的 Remi 页，不在仓库里
 - README 和旧笔记冲突时，以代码和本文件为准

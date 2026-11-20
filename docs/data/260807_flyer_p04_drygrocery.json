@@ -1,0 +1,574 @@
+[
+ {
+  "codes": [
+   "4002496"
+  ],
+  "sizes": [
+   "900g"
+  ],
+  "en": "SUN CHI SLICED NOODLES",
+  "zh": "上智刀削麵",
+  "price": 5.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 3.0189,
+  "unit": "lb",
+  "basis": "5.99 ÷ 900.0g"
+ },
+ {
+  "codes": [
+   "2017536"
+  ],
+  "sizes": [
+   "450g"
+  ],
+  "en": "PENG SHENG PRESERVED MUSTARD WITH OLIVE",
+  "zh": "蓬盛香港橄欖菜",
+  "price": 2.69,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 2.7115,
+  "unit": "lb",
+  "basis": "2.69 ÷ 450.0g"
+ },
+ {
+  "codes": [
+   "1614041"
+  ],
+  "sizes": [
+   "550ml"
+  ],
+  "en": "ASIAN TASTE CHINKIANG VINEGAR",
+  "zh": "東之味鎮江香醋",
+  "price": 1.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 0.0036,
+  "unit": "ml",
+  "basis": "1.99 ÷ 550.0ml"
+ },
+ {
+  "codes": [
+   "1651556"
+  ],
+  "sizes": [
+   "340g"
+  ],
+  "en": "GREAT WALL PORK N HAM",
+  "zh": "長城午餐肉",
+  "price": 3.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 5.323,
+  "unit": "lb",
+  "basis": "3.99 ÷ 340.0g"
+ },
+ {
+  "codes": [
+   "1605297",
+   "1605299"
+  ],
+  "sizes": [
+   "400g"
+  ],
+  "en": "SINBO (WHITE / BROWN) ROCK SUGAR",
+  "zh": "仙寶(白/黃)冰糖",
+  "price": 2.29,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 2.5968,
+  "unit": "lb",
+  "basis": "2.29 ÷ 400.0g"
+ },
+ {
+  "codes": [
+   "1636331"
+  ],
+  "sizes": [
+   "150g"
+  ],
+  "en": "SINZAU LAVER",
+  "zh": "新藻紫菜(150公克)",
+  "price": 9.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 30.2092,
+  "unit": "lb",
+  "basis": "9.99 ÷ 150.0g"
+ },
+ {
+  "codes": [
+   "1607293",
+   "1607294",
+   "1607295"
+  ],
+  "sizes": [
+   "500g"
+  ],
+  "en": "SUNLIGHT WHEAT FLOUR - (HIGH / MED / LOW) GLUTINOUS",
+  "zh": "日正-(高筋/中筋/低筋)麵粉",
+  "price": 2.29,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 2.0775,
+  "unit": "lb",
+  "basis": "2.29 ÷ 500.0g"
+ },
+ {
+  "codes": [
+   "2086667"
+  ],
+  "sizes": [
+   "11.99oz"
+  ],
+  "en": "99 RANCH DRIED BEANCURD STICK",
+  "zh": "99 RANCH 圓枝腐竹",
+  "price": 4.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 6.6589,
+  "unit": "lb",
+  "basis": "4.99 ÷ 11.99oz"
+ },
+ {
+  "codes": [
+   "2084484",
+   "2084485",
+   "2084486"
+  ],
+  "sizes": [
+   "2-3cm",
+   "3-4cm"
+  ],
+  "en": "99 RANCH ORGANIC DRIED MUSHROOM - 2-3cm / 3-4cm",
+  "zh": "99 RANCH 有機童花菇",
+  "price": 11.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": "尺寸是菇径不是净重",
+  "unit_price": null,
+  "unit": null,
+  "basis": "规格读不出可用的数量 —— 不猜"
+ },
+ {
+  "codes": [
+   "2078354",
+   "2094602",
+   "2094642"
+  ],
+  "sizes": [
+   "12floz"
+  ],
+  "en": "KEWPIE MAYONNAISE (EZ SQUEEZE TUBE) - ORIGINAL / ORGANIC / SPICY",
+  "zh": "丘比美乃滋-原味/有機/辣味",
+  "price": 4.29,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 0.0121,
+  "unit": "ml",
+  "basis": "4.29 ÷ 12.0floz"
+ },
+ {
+  "codes": [
+   "1614875",
+   "1614895"
+  ],
+  "sizes": [
+   "750ml"
+  ],
+  "en": "LILY COOKING WINE - RICE / HUA-TIAO",
+  "zh": "百合料酒(瓶)-香米/花雕",
+  "price": 1.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 0.0027,
+  "unit": "ml",
+  "basis": "1.99 ÷ 750.0ml"
+ },
+ {
+  "codes": [
+   "2092238"
+  ],
+  "sizes": [
+   "35.2oz"
+  ],
+  "en": "HADAY SELECTED OYSTER SAUCE",
+  "zh": "海天珍選蠔油",
+  "price": 2.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 1.3591,
+  "unit": "lb",
+  "basis": "2.99 ÷ 35.2oz"
+ },
+ {
+  "codes": [
+   "1619191"
+  ],
+  "sizes": [
+   "17oz"
+  ],
+  "en": "HF SRIRACHA CHILI SAUCE",
+  "zh": "匯豐是拉差辣醬",
+  "price": 3.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 3.7553,
+  "unit": "lb",
+  "basis": "3.99 ÷ 17.0oz"
+ },
+ {
+  "codes": [
+   "3604645"
+  ],
+  "sizes": [
+   "4x4.48oz"
+  ],
+  "en": "NONGSHIM CHAJANG NOODLE CHAPAGETTI",
+  "zh": "農心炸醬麵(四包裝)",
+  "price": 4.49,
+  "price_unit": "PK",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 4.0089,
+  "unit": "lb",
+  "basis": "4.49 ÷ 17.92oz"
+ },
+ {
+  "codes": [
+   "3604646",
+   "3604648",
+   "3604746"
+  ],
+  "sizes": [
+   "4x4.2oz",
+   "4x4.4oz"
+  ],
+  "en": "NONGSHIM NOODLE SOUP (4PK) SERIES - NEOGURI / KIMCHI / ANSUNG TANGMYUN",
+  "zh": "農心湯麵(四包裝)系列",
+  "price": 4.49,
+  "price_unit": "PK",
+  "multibuy": null,
+  "note": null,
+  "unit_price": null,
+  "unit": null,
+  "basis": "一格里有 2 种不同规格，价格只有一个 —— 对应关系传单没印，不猜"
+ },
+ {
+  "codes": [
+   "2084898"
+  ],
+  "sizes": [
+   "10kg"
+  ],
+  "en": "HANAYAGI FUKUMARU JAPANESE SHORT GRAIN RICE",
+  "zh": "HANAYAGI優質特選日本短苗米",
+  "price": 30.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 1.4057,
+  "unit": "lb",
+  "basis": "30.99 ÷ 10.0kg"
+ },
+ {
+  "codes": [
+   "2056866",
+   "2056867"
+  ],
+  "sizes": [
+   "6.31oz",
+   "6.53oz"
+  ],
+  "en": "SAMYANG HOT CHICKEN TOPKKI BIG BOWL - CARBO / ORIGINAL",
+  "zh": "三養辣雞年糕",
+  "price": 4.29,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": null,
+  "unit": null,
+  "basis": "一格里有 2 种不同规格，价格只有一个 —— 对应关系传单没印，不猜"
+ },
+ {
+  "codes": [
+   "1659814",
+   "2011742",
+   "2051410"
+  ],
+  "sizes": [
+   "15oz",
+   "14.1oz",
+   "5pk"
+  ],
+  "en": "INDOMIE GORENG FRIED NOODLE - BBQ CHICKEN / ORIGINAL / SPICY",
+  "zh": "營多印尼撈麵",
+  "price": 2.99,
+  "price_unit": "PK",
+  "multibuy": null,
+  "note": "第三个规格 5pk 是件数不是重量",
+  "unit_price": null,
+  "unit": null,
+  "basis": "一格里有 2 种不同规格，价格只有一个 —— 对应关系传单没印，不猜"
+ },
+ {
+  "codes": [
+   "3604488",
+   "3604489",
+   "3604490",
+   "3604497",
+   "3604498"
+  ],
+  "sizes": [
+   "110g",
+   "104g",
+   "101g",
+   "108g"
+  ],
+  "en": "KSF INSTANT NOODLE BOWL - 5 FLAVORS",
+  "zh": "康師傅碗麵",
+  "price": 5.0,
+  "price_unit": "EA",
+  "multibuy": 4,
+  "note": "MUST BUY 4 | MIX & MATCH；5 个编码对 4 种克重",
+  "unit_price": null,
+  "unit": null,
+  "basis": "一格里有 4 种不同规格，价格只有一个 —— 对应关系传单没印，不猜"
+ },
+ {
+  "codes": [
+   "1602007"
+  ],
+  "sizes": [
+   "14oz"
+  ],
+  "en": "BUDDAH RICE STICK-S",
+  "zh": "佛祖米粉",
+  "price": 2.29,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 2.6171,
+  "unit": "lb",
+  "basis": "2.29 ÷ 14.0oz"
+ },
+ {
+  "codes": [
+   "2081327",
+   "2081328"
+  ],
+  "sizes": [
+   "16.93oz"
+  ],
+  "en": "99 RANCH SPICY (KIMCHI / SEAFOOD JJAMPPONG) RAMEN",
+  "zh": "99 RANCH辣(泡菜/海鮮)拉麵",
+  "price": 3.49,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 3.2983,
+  "unit": "lb",
+  "basis": "3.49 ÷ 16.93oz"
+ },
+ {
+  "codes": [
+   "1615628"
+  ],
+  "sizes": [
+   "33.8oz"
+  ],
+  "en": "KIKKOMAN SOY SAUCE (JAPAN)",
+  "zh": "萬字醬油(日產)",
+  "price": 4.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 2.3621,
+  "unit": "lb",
+  "basis": "4.99 ÷ 33.8oz"
+ },
+ {
+  "codes": [
+   "1636655"
+  ],
+  "sizes": [
+   "10oz"
+  ],
+  "en": "ASIAN TASTE DRIED BROWN MUSHROOM (ZIP-PKG)",
+  "zh": "東之味慶元茶花菇(拉鏈袋)",
+  "price": 11.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 19.184,
+  "unit": "lb",
+  "basis": "11.99 ÷ 10.0oz"
+ },
+ {
+  "codes": [
+   "3616048",
+   "3616049"
+  ],
+  "sizes": [
+   "28oz"
+  ],
+  "en": "LKK SOY BEAN SAUCE - ORIGINAL / SPICY",
+  "zh": "李錦記黃豆醬-原味/辣味",
+  "price": 4.29,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 2.4514,
+  "unit": "lb",
+  "basis": "4.29 ÷ 28.0oz"
+ },
+ {
+  "codes": [
+   "3626444"
+  ],
+  "sizes": [
+   "1lb"
+  ],
+  "en": "ASIAN TASTE ORGANIC MUNG BEAN",
+  "zh": "東之味有機綠豆",
+  "price": 3.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 3.99,
+  "unit": "lb",
+  "basis": "3.99 ÷ 1.0lb"
+ },
+ {
+  "codes": [
+   "2073113"
+  ],
+  "sizes": [
+   "17.6oz"
+  ],
+  "en": "SON FISH SAUCE",
+  "zh": "SON 魚露",
+  "price": 5.49,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 4.9909,
+  "unit": "lb",
+  "basis": "5.49 ÷ 17.6oz"
+ },
+ {
+  "codes": [
+   "1612120"
+  ],
+  "sizes": [
+   "23.06floz"
+  ],
+  "en": "THREE CRABS FISH SAUCE",
+  "zh": "三蟹魚露",
+  "price": 7.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 0.0117,
+  "unit": "ml",
+  "basis": "7.99 ÷ 23.06floz"
+ },
+ {
+  "codes": [
+   "2084219"
+  ],
+  "sizes": [
+   "67.6oz",
+   "2L"
+  ],
+  "en": "99 RANCH ORGANIC EXTRA VIRGIN OLIVE OIL",
+  "zh": "99 RANCH 有機特級初榨橄欖油",
+  "price": 19.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": "同一瓶两种写法：67.6oz = 2L",
+  "unit_price": null,
+  "unit": null,
+  "basis": "一格里有 2 种不同规格，价格只有一个 —— 对应关系传单没印，不猜"
+ },
+ {
+  "codes": [
+   "1611701"
+  ],
+  "sizes": [
+   "11oz"
+  ],
+  "en": "KADOYA SESAME OIL",
+  "zh": "日本八角麻油",
+  "price": 5.49,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 7.9855,
+  "unit": "lb",
+  "basis": "5.49 ÷ 11.0oz"
+ },
+ {
+  "codes": [
+   "3601188"
+  ],
+  "sizes": [
+   "15lb"
+  ],
+  "en": "ASIAN TASTE CALROSE RICE",
+  "zh": "東之味蓬萊米",
+  "price": 9.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 0.666,
+  "unit": "lb",
+  "basis": "9.99 ÷ 15.0lb"
+ },
+ {
+  "codes": [
+   "1601044"
+  ],
+  "sizes": [
+   "15lb"
+  ],
+  "en": "MOGAMI WHOLEGRAIN BROWN RICE",
+  "zh": "最上玄米",
+  "price": 19.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 1.3327,
+  "unit": "lb",
+  "basis": "19.99 ÷ 15.0lb"
+ },
+ {
+  "codes": [
+   "1601002"
+  ],
+  "sizes": [
+   "25lb"
+  ],
+  "en": "99 JASMINE RICE",
+  "zh": "九九香米",
+  "price": 22.99,
+  "price_unit": "EA",
+  "multibuy": null,
+  "note": null,
+  "unit_price": 0.9196,
+  "unit": "lb",
+  "basis": "22.99 ÷ 25.0lb"
+ }
+]
