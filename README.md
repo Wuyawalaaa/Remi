@@ -4,39 +4,58 @@
 
 ---
 
-## 当前状态（2026-08-07）
+## 当前状态（2026-08-28）
 
-**99 Ranch 抓错了店，抓了四个月。** 其余三家正常。
+**99 Ranch 抓错了店，抓了四个月，还没修。** 其余三家正常。
 
-| 店 | 数据来源 | 本周 | 状态 |
-|---|---|---|---|
-| Safeway | Flipp 开放接口 | 194 条 | 正常 |
-| Cardenas | Flipp 开放接口 | 221 条 | 正常 |
-| H Mart | Flipp 开放接口 | 46 条 | 正常 |
-| 99 Ranch | 自家 JSON 接口 | 174 条 | ⚠️ **这 174 条是南加州仓库的，对湾区用户无效** |
+| 店 | 数据来源 | 状态 |
+|---|---|---|
+| Safeway | Flipp 开放接口 | 正常 |
+| Cardenas | Flipp 开放接口 | 正常 |
+| H Mart | Flipp 开放接口 | 正常 |
+| 99 Ranch | 自家 JSON 接口 | ⚠️ **数据源错误，抓的是南加州仓库；且该板块已空，每天抓取失败** |
 
-`download_99ranch_flyer.py` 里 `STORE_ID = 8899`，注释写着 `# Mountain View`——但 8899 是 Walong Marketing 的仓库（Buena Park，南加州），Mountain View 是 1772。抽 5 件商品实测，**5/5 价格都和湾区门店不同**，4/5 我们报的「特价」比湾区日常价还贵。
+`download_99ranch_flyer.py` 里 `STORE_ID = 8899`，注释写着 `# Mountain View`——但 8899 是
+Walong Marketing 的仓库（Buena Park，南加州），Mountain View 是 **1772**。抽 5 件商品实测，
+**5/5 价格都和湾区门店不同**，4/5 我们报的「特价」比湾区日常价还贵。
 
-**每天早上 6:00 自动跑**（`com.remi.pipeline`）。已有当周数据的店会跳过，只花约 1 秒、0 次网络请求。
-（8-07 早上 99 Ranch 抓取已失败：`themeId=18: API returned 0 products`——那个仓库板块空了。）
+**每天早上 6:00 自动跑**（`com.remi.pipeline`）。99 Ranch 那步会失败
+（`themeId=18: API returned 0 products`——那个仓库板块空了）。
 
 ### 下次从这里开始
 
-**先读 `../docs/260807_Ingestion_Design_v2.md`**，里面有错在哪、正确端点、已经排除掉的五条路（别再查一遍）、验证过的提示词全文。标准答案在 `../docs/data/`。
+三份文档，分工不重叠：
 
-正确的数据源是**门店传单**，而传单只有图，没有任何文字接口——只能用视觉模型读。已验证可行：三页 87 格 Luna 逐行人工核对，真错 2 条；Sonnet 读最难那页 29/30。
+| 文档 | 回答 |
+|---|---|
+| `../docs/260807_Ingestion_Design_v3.md` | **怎么抓** —— 正确端点、覆盖范围、每日对账、已排除的五条路（别再查一遍）|
+| `../docs/260808_FieldAudit_v2.md` | **源上有什么** —— Flipp 56 / Ranch 商品库 51 字段，逐个留决定 |
+| `../docs/260828_FieldSet_v1.md` | **要抄哪些格子** —— 读传单的 21 个字段、怎么抄、已知硬伤 |
+| `../docs/260828_FieldsAudit_from_Requirements_v1.md` | **我们要回答什么** —— 七棵需求树 + 倒着验出来的缺口清单 |
+
+正确的数据源是**门店传单**，只有图，没有任何文字接口——只能用视觉模型读。
+已验证：11 页 231 条全跑通，`unmapped` **实测 4 条**
+（3 条是原价旁重复印的附加费 —— 已改 `surcharges` 规则吸收，**但那次改动没跑过验证**；
+1 条是 `NEW ITEM` 角标，故意留着观察）。
 
 顺序（不能换，第 1 步必须在第 2 步前）：
 
 ```
-0.  填视觉模型 API key（.env 里现在是占位符）
-1.  定一套所有店共用的字段        ← 提示词就是字段定义，先改抓取等于又拿单一数据源当 schema
-2.  99 Ranch 改成读传单
-3.  Flipp 三家对齐到同一套字段
-4.  管理后台（已重建，但字段未统一）
-5.  normalization
-6.  category
+0.  ✅ 视觉模型 —— Gemini key 已填 .env；Sonnet 28/30 胜 Gemini Flash 22/30，最终选型未定
+1.  🟡 定一套所有店共用的字段
+       ✅ 99 Ranch 传单读图这半边已收口 → 260828_FieldSet_v1.md
+       ⬜ 传单 → 商品库单品匹配（56% 基线，要定名字+净重双键规则）
+       ⬜ 跟 Flipp 56 字段对应、取并集
+       ⬜ 拿需求树倒着验一遍（找缺口，不是筛字段）→ FieldsAudit_from_Requirements
+2.  ⬜ 99 Ranch 改成读传单
+3.  ⬜ Flipp 三家对齐到同一套字段
+4.  ⬜ 管理后台（已重建，但字段未统一）
+5.  ⬜ normalization
+6.  ⬜ category
 ```
+
+**没落实的两条**：存 viewAd 的 `imageUrl` + ETag（旧图 URL 实测过期两周仍可访问，
+所以不用存图；哪天 404，每日对账会当天报）；轮换 6 个 API 密钥。
 
 ### 待办（更详细的列表见 `../docs/`）
 
@@ -131,7 +150,7 @@ Flipp 覆盖的湾区杂货店包括 Costco、Sprouts、Lucky、FoodMaxx、Groce
 |---|---|
 | `stores.py` | **唯一声明店铺的地方** |
 | `download_flipp_flyer.py` | 抓取所有 Flipp 商家 |
-| `download_99ranch_flyer.py` | 99 Ranch 自己的接口 —— **数据源错误，待改为读门店传单图**，见 `../docs/260807_Ingestion_Design_v2.md` |
+| `download_99ranch_flyer.py` | 99 Ranch 自己的接口 —— **数据源错误，待改为读门店传单图**，见 `../docs/260807_Ingestion_Design_v3.md` 和 `../docs/260828_FieldSet_v1.md` |
 | `parse_99ranch_deals.py` | 99 Ranch 的解析（Flipp 的抓取器直接产出成品，不需要单独解析）|
 | `deal_fields.py` | 各解析器共用的字段规范化 |
 | `import_to_database.py` | 入库 + 调用校验 |
