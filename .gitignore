@@ -4,8 +4,9 @@ __pycache__/
 .venv/
 .env
 vertex_service_account.json
+# database.db 和 flyers/ 从 2026-11-19 起进仓库：它们是抓下来的数据，本机不再是唯一一份
 *.db
-flyers/
+!database.db
 temp/
 logs/
 *.db.backup-*

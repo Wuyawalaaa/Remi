@@ -1,0 +1,2031 @@
+{
+  "source": "flipp_api",
+  "fetched_at": "2026-03-18T23:02:54.025608",
+  "valid_from": "2026-03-18",
+  "total_items": 222,
+  "items": [
+    {
+      "item_id": "999375357",
+      "raw_label": "Pick up or Delivery, ,",
+      "parts": [
+        "Pick up or Delivery",
+        "",
+        ""
+      ]
+    },
+    {
+      "item_id": "999375351",
+      "raw_label": "Signature SELECT® Extra Meaty Pork Loin Back Ribs, , $3.99 lb member price",
+      "parts": [
+        "Signature SELECT® Extra Meaty Pork Loin Back Ribs",
+        "",
+        "$3.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999375282",
+      "raw_label": "New York Style Sausage 16-oz. Evergood Sausage 12-oz. Hormel Black Label Bacon 12 to 16-oz., , $4.99 ea member price",
+      "parts": [
+        "New York Style Sausage 16-oz. Evergood Sausage 12-oz. Hormel Black Label Bacon 12 to 16-oz.",
+        "",
+        "$4.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999374063",
+      "raw_label": "Foster Farms Simply Raised Boneless Skinless Chicken Breasts, Thin Sliced or Tenders, BUY 1 GET 1 FREE Member Price When you Buy 2,",
+      "parts": [
+        "Foster Farms Simply Raised Boneless Skinless Chicken Breasts",
+        "Thin Sliced or Tenders",
+        "BUY 1 GET 1 FREE Member Price When you Buy 2",
+        ""
+      ]
+    },
+    {
+      "item_id": "999379100",
+      "raw_label": "USDA Choice Boneless Beef Chuck Steak Value Pack or Roast Mega Pack, , $5.99 lb member price",
+      "parts": [
+        "USDA Choice Boneless Beef Chuck Steak Value Pack or Roast Mega Pack",
+        "",
+        "$5.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999366625",
+      "raw_label": "Hass Avocado, , 4 for $5 member price",
+      "parts": [
+        "Hass Avocado",
+        "",
+        "4 for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999375241",
+      "raw_label": "Taylor Farms or Fresh Express Chopped Salad Kit 6.7 to 13.5-oz. Fresh Express Salad Blend 5 to 11-oz., BUY 1 GET 1 FREE Member price When you Buy 2,",
+      "parts": [
+        "Taylor Farms or Fresh Express Chopped Salad Kit 6.7 to 13.5-oz. Fresh Express Salad Blend 5 to 11-oz.",
+        "BUY 1 GET 1 FREE Member price When you Buy 2",
+        ""
+      ]
+    },
+    {
+      "item_id": "999375257",
+      "raw_label": "Waterfront Bistro® Large Raw Shrimp 31 to 40-ct. Sold in a 2-lb. bag. Frozen. Sold by the pound. Fresh Atlantic Salmon Portion 7-oz., , $3.99 member price",
+      "parts": [
+        "Waterfront Bistro® Large Raw Shrimp 31 to 40-ct. Sold in a 2-lb. bag. Frozen. Sold by the pound. Fresh Atlantic Salmon Portion 7-oz.",
+        "",
+        "$3.99 member price"
+      ]
+    },
+    {
+      "item_id": "999378996",
+      "raw_label": "Cuties Mandarins, , $3.99 ea member price",
+      "parts": [
+        "Cuties Mandarins",
+        "",
+        "$3.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999372240",
+      "raw_label": "Lucerne® Cage Free Eggs, , $2.49 ea member price",
+      "parts": [
+        "Lucerne® Cage Free Eggs",
+        "",
+        "$2.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999375301",
+      "raw_label": "TENDERS IN THE DELI, , $5.99 lb member price",
+      "parts": [
+        "TENDERS IN THE DELI",
+        "",
+        "$5.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999375288",
+      "raw_label": "Lucerne® Sliced Cheese 24-oz. Chunk or Shredded Cheese 32-oz, EARN 4x POINTS, $5.99 ea member price",
+      "parts": [
+        "Lucerne® Sliced Cheese 24-oz. Chunk or Shredded Cheese 32-oz",
+        "EARN 4x POINTS",
+        "$5.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999375271",
+      "raw_label": "Lucerne® Butter, , $2.99 ea member price when you buy 2",
+      "parts": [
+        "Lucerne® Butter",
+        "",
+        "$2.99 ea member price when you buy 2"
+      ]
+    },
+    {
+      "item_id": "999375370",
+      "raw_label": "Nature Valley Bars 5 to 6-ct., Betty Crocker Fruit Snacks 6 to 10-ct., General Mills Cereal 8.9 to 12-oz., EARN 4x POINTS, $1.99 ea member price when you buy 4",
+      "parts": [
+        "Nature Valley Bars 5 to 6-ct.",
+        "Betty Crocker Fruit Snacks 6 to 10-ct.",
+        "General Mills Cereal 8.9 to 12-oz.",
+        "EARN 4x POINTS",
+        "$1.99 ea member price when you buy 4"
+      ]
+    },
+    {
+      "item_id": "999375278",
+      "raw_label": "Signature SELECT® Ice Cream 1.5-qt. Ice Cream Bars or Sandwiches 6-ct., , $2.99 ea member price",
+      "parts": [
+        "Signature SELECT® Ice Cream 1.5-qt. Ice Cream Bars or Sandwiches 6-ct.",
+        "",
+        "$2.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999375325",
+      "raw_label": "Oroweat Variety Bread, , $3.99 member price",
+      "parts": [
+        "Oroweat Variety Bread",
+        "",
+        "$3.99 member price"
+      ]
+    },
+    {
+      "item_id": "999375299",
+      "raw_label": "Cheetos, Doritos, SunChips, Ruffles or Miss Vickies, BUY 2 GET 2 FREE Price When you Buy 4, Single price up to $5.49 ea.",
+      "parts": [
+        "Cheetos",
+        "Doritos",
+        "SunChips",
+        "Ruffles or Miss Vickies",
+        "BUY 2 GET 2 FREE Price When you Buy 4",
+        "Single price up to $5.49 ea."
+      ]
+    },
+    {
+      "item_id": "999375323",
+      "raw_label": "Lay's Potato Chips or Poppables, EARN 4X POINTS, $1.99 ea member price",
+      "parts": [
+        "Lay's Potato Chips or Poppables",
+        "EARN 4X POINTS",
+        "$1.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999375308",
+      "raw_label": "Coca-Cola, Pepsi, 7UP or Dr Pepper, BUY 2 GET 2 FREE Member Price,",
+      "parts": [
+        "Coca-Cola",
+        "Pepsi",
+        "7UP or Dr Pepper",
+        "BUY 2 GET 2 FREE Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999375362",
+      "raw_label": "Coors 18-pack, 12-oz. Selected varieties. Sun Cruiser 8-pack, 12-oz. Corona, White Claw or Lagunitas 12-pack, 12-oz., , $13.99 ea member price when you buy 2",
+      "parts": [
+        "Coors 18-pack",
+        "12-oz. Selected varieties. Sun Cruiser 8-pack",
+        "12-oz. Corona",
+        "White Claw or Lagunitas 12-pack",
+        "12-oz.",
+        "",
+        "$13.99 ea member price when you buy 2"
+      ]
+    },
+    {
+      "item_id": "999375381",
+      "raw_label": "Signature SELECT® Pasta 12 to 16-oz. Canned Tomatoes 10 to 14.5-oz., , $0.99 ea member price",
+      "parts": [
+        "Signature SELECT® Pasta 12 to 16-oz. Canned Tomatoes 10 to 14.5-oz.",
+        "",
+        "$0.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379373",
+      "raw_label": "Cyber Sale, ,",
+      "parts": [
+        "Cyber Sale",
+        "",
+        ""
+      ]
+    },
+    {
+      "item_id": "999379176",
+      "raw_label": "Signature SELECT® 80% Lean Ground Beef, , $6.99 lb member price",
+      "parts": [
+        "Signature SELECT® 80% Lean Ground Beef",
+        "",
+        "$6.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999378698",
+      "raw_label": "Rocky Chicken Free Range Drumsticks, BUY 1 GET 1 FREE When you Buy 2 Member Price,",
+      "parts": [
+        "Rocky Chicken Free Range Drumsticks",
+        "BUY 1 GET 1 FREE When you Buy 2 Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999379152",
+      "raw_label": "Open Nature® Boneless Skinless Chicken Breasts or Chicken Tenders, , $6.99 lb member price",
+      "parts": [
+        "Open Nature® Boneless Skinless Chicken Breasts or Chicken Tenders",
+        "",
+        "$6.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999379154",
+      "raw_label": "New York Style 95% Lean Ground Pork, , $4.99 ea member price",
+      "parts": [
+        "New York Style 95% Lean Ground Pork",
+        "",
+        "$4.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379158",
+      "raw_label": "Signature SELECT® Pork Tenderloin, , $4.99 lb member price",
+      "parts": [
+        "Signature SELECT® Pork Tenderloin",
+        "",
+        "$4.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999379164",
+      "raw_label": "Chobani Greek Yogurt, EARN 4x POINTS, $0.69 ea member price",
+      "parts": [
+        "Chobani Greek Yogurt",
+        "EARN 4x POINTS",
+        "$0.69 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379185",
+      "raw_label": "Signature SELECT® Pork Shoulder Country Style Ribs, , $2.99 lb member price",
+      "parts": [
+        "Signature SELECT® Pork Shoulder Country Style Ribs",
+        "",
+        "$2.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999373840",
+      "raw_label": "Fresh Atlantic Salmon Whole Fillets, , $10.99 lb member price",
+      "parts": [
+        "Fresh Atlantic Salmon Whole Fillets",
+        "",
+        "$10.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999367615",
+      "raw_label": "Jumbo Snow Crab Clusters, , $12.99 lb member price",
+      "parts": [
+        "Jumbo Snow Crab Clusters",
+        "",
+        "$12.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999379221",
+      "raw_label": "Too Good Creamer 25.4-oz. International Delight Creamer 32-oz., EARN 4X POINTS, $1.99 ea member price",
+      "parts": [
+        "Too Good Creamer 25.4-oz. International Delight Creamer 32-oz.",
+        "EARN 4X POINTS",
+        "$1.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379194",
+      "raw_label": "Organic Strawberries, , $5.99 ea member price",
+      "parts": [
+        "Organic Strawberries",
+        "",
+        "$5.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379222",
+      "raw_label": "Broccoli Crowns, , $2.99 lb member price",
+      "parts": [
+        "Broccoli Crowns",
+        "",
+        "$2.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999378981",
+      "raw_label": "Cosmic Crisp Apples, , $1.99 lb member price",
+      "parts": [
+        "Cosmic Crisp Apples",
+        "",
+        "$1.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999379196",
+      "raw_label": "Quaker Chewy Granola Bars, , $1.49 ea member price",
+      "parts": [
+        "Quaker Chewy Granola Bars",
+        "",
+        "$1.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379226",
+      "raw_label": "Lemon, , $0.99 ea",
+      "parts": [
+        "Lemon",
+        "",
+        "$0.99 ea"
+      ]
+    },
+    {
+      "item_id": "999379233",
+      "raw_label": "Eggplant, , $1.49 ea member price",
+      "parts": [
+        "Eggplant",
+        "",
+        "$1.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379236",
+      "raw_label": "Quaker Rice Cakes 4.47 to 7.23-oz. Skippy Peanut Butter 15 to 16.3-oz., EARN 4x POINTS, $1.99 ea member price",
+      "parts": [
+        "Quaker Rice Cakes 4.47 to 7.23-oz. Skippy Peanut Butter 15 to 16.3-oz.",
+        "EARN 4x POINTS",
+        "$1.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379195",
+      "raw_label": "Signature SELECT® Roasted & Salted In-Shell Pistachios, EARN 2x POINTS, $5 ea member price",
+      "parts": [
+        "Signature SELECT® Roasted & Salted In-Shell Pistachios",
+        "EARN 2x POINTS",
+        "$5 ea member price"
+      ]
+    },
+    {
+      "item_id": "999373105",
+      "raw_label": "Signature SELECT® Mushrooms, , $5 ea member price",
+      "parts": [
+        "Signature SELECT® Mushrooms",
+        "",
+        "$5 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379242",
+      "raw_label": "Grapefruit, , $1.49 ea member price",
+      "parts": [
+        "Grapefruit",
+        "",
+        "$1.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379250",
+      "raw_label": "Hidden Valley Ranch Dressing, EARN 4X POINTS, $2.99 ea member price",
+      "parts": [
+        "Hidden Valley Ranch Dressing",
+        "EARN 4X POINTS",
+        "$2.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379241",
+      "raw_label": "Baked Fish Sandwich, , $5 ea",
+      "parts": [
+        "Baked Fish Sandwich",
+        "",
+        "$5 ea"
+      ]
+    },
+    {
+      "item_id": "999369023",
+      "raw_label": "ready2heat Entrée Meal, , Starting at $8.99 ea",
+      "parts": [
+        "ready2heat Entrée Meal",
+        "",
+        "Starting at $8.99 ea"
+      ]
+    },
+    {
+      "item_id": "999379300",
+      "raw_label": "Greens & Grains Salad, , $6.99 ea",
+      "parts": [
+        "Greens & Grains Salad",
+        "",
+        "$6.99 ea"
+      ]
+    },
+    {
+      "item_id": "999365856",
+      "raw_label": "Boursin Cheese Spread, , $6.49 ea member price",
+      "parts": [
+        "Boursin Cheese Spread",
+        "",
+        "$6.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379290",
+      "raw_label": "Kettle Potato Chips, EARN 4X POINTS, $1.79 ea member price",
+      "parts": [
+        "Kettle Potato Chips",
+        "EARN 4X POINTS",
+        "$1.79 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379261",
+      "raw_label": "Muffins, , $3.99 member price",
+      "parts": [
+        "Muffins",
+        "",
+        "$3.99 member price"
+      ]
+    },
+    {
+      "item_id": "999379278",
+      "raw_label": "Bakery French or Sourdough Bread, , $1.99 member price",
+      "parts": [
+        "Bakery French or Sourdough Bread",
+        "",
+        "$1.99 member price"
+      ]
+    },
+    {
+      "item_id": "999379259",
+      "raw_label": "Single Layer Decorated Cake, , $11.99 member price",
+      "parts": [
+        "Single Layer Decorated Cake",
+        "",
+        "$11.99 member price"
+      ]
+    },
+    {
+      "item_id": "999379276",
+      "raw_label": "Mini Bear Paws, , $4.99 member price",
+      "parts": [
+        "Mini Bear Paws",
+        "",
+        "$4.99 member price"
+      ]
+    },
+    {
+      "item_id": "999379356",
+      "raw_label": "Frito-Lay Flavor Mix, EARN 4X POINTS, $17.99 ea member price",
+      "parts": [
+        "Frito-Lay Flavor Mix",
+        "EARN 4X POINTS",
+        "$17.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379320",
+      "raw_label": "Bouquet of the Month, , $16.99",
+      "parts": [
+        "Bouquet of the Month",
+        "",
+        "$16.99"
+      ]
+    },
+    {
+      "item_id": "999379366",
+      "raw_label": "Yellow Flower Day Bouquet, , $15.99 member price",
+      "parts": [
+        "Yellow Flower Day Bouquet",
+        "",
+        "$15.99 member price"
+      ]
+    },
+    {
+      "item_id": "999379360",
+      "raw_label": "Spring Celebration Bouquet, , $24.99",
+      "parts": [
+        "Spring Celebration Bouquet",
+        "",
+        "$24.99"
+      ]
+    },
+    {
+      "item_id": "999379365",
+      "raw_label": "Signature SELECT® Mini Carnations, , $4.99 member price",
+      "parts": [
+        "Signature SELECT® Mini Carnations",
+        "",
+        "$4.99 member price"
+      ]
+    },
+    {
+      "item_id": "999379314",
+      "raw_label": "Signature SELECT® Bath Tissue Family Pack, EARN 4x POINTS, $17.99 ea member price",
+      "parts": [
+        "Signature SELECT® Bath Tissue Family Pack",
+        "EARN 4x POINTS",
+        "$17.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379339",
+      "raw_label": "Coors 30-pack, 12-oz. Modelo or Pacifico 18-pack, 12-oz., , $22.99 member price",
+      "parts": [
+        "Coors 30-pack",
+        "12-oz. Modelo or Pacifico 18-pack",
+        "12-oz.",
+        "",
+        "$22.99 member price"
+      ]
+    },
+    {
+      "item_id": "999379346",
+      "raw_label": "Cazadores, Maker's Mark or Mr Black Coffee Liqueur, , $23.39 ea when you buy 6 or more Member Price",
+      "parts": [
+        "Cazadores",
+        "Maker's Mark or Mr Black Coffee Liqueur",
+        "",
+        "$23.39 ea when you buy 6 or more Member Price"
+      ]
+    },
+    {
+      "item_id": "999379357",
+      "raw_label": "Rombauer or Frank Family, , $37.99 member price",
+      "parts": [
+        "Rombauer or Frank Family",
+        "",
+        "$37.99 member price"
+      ]
+    },
+    {
+      "item_id": "999379393",
+      "raw_label": "J Vineyards, J. Lohr or Dry Creek, , $13.99 ea when you buy 6 or more Member Price",
+      "parts": [
+        "J Vineyards",
+        "J. Lohr or Dry Creek",
+        "",
+        "$13.99 ea when you buy 6 or more Member Price"
+      ]
+    },
+    {
+      "item_id": "999417172",
+      "raw_label": "Safeway for u, ,",
+      "parts": [
+        "Safeway for u",
+        "",
+        ""
+      ]
+    },
+    {
+      "item_id": "999364986",
+      "raw_label": "Hormel Pepperoni Pillow Pack, , $3.99 ea member price",
+      "parts": [
+        "Hormel Pepperoni Pillow Pack",
+        "",
+        "$3.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380674",
+      "raw_label": "Kevin's Natural Foods Beef Entrée, , $8.99 ea member price",
+      "parts": [
+        "Kevin's Natural Foods Beef Entrée",
+        "",
+        "$8.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380663",
+      "raw_label": "Open Nature® Snow Crab Clusters, , $19.99 ea member price",
+      "parts": [
+        "Open Nature® Snow Crab Clusters",
+        "",
+        "$19.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999365204",
+      "raw_label": "Primo Taglio® Ham or Cheddar Cheese, , $7.99 lb member price",
+      "parts": [
+        "Primo Taglio® Ham or Cheddar Cheese",
+        "",
+        "$7.99 lb member price"
+      ]
+    },
+    {
+      "item_id": "999417151",
+      "raw_label": "Signature SELECT® Sandwich Bread 20 to 22-oz. Nature's Own Perfectly Crafted Buns 16 to 18-oz., , $2.99 ea member price",
+      "parts": [
+        "Signature SELECT® Sandwich Bread 20 to 22-oz. Nature's Own Perfectly Crafted Buns 16 to 18-oz.",
+        "",
+        "$2.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417153",
+      "raw_label": "Silk Almondmilk 64-oz. Simply Lemonade or Gold Peak Tea 76-oz., EARN 4x POINTS, $2.99 ea member price",
+      "parts": [
+        "Silk Almondmilk 64-oz. Simply Lemonade or Gold Peak Tea 76-oz.",
+        "EARN 4x POINTS",
+        "$2.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999368873",
+      "raw_label": "Chobani Creamer 24-oz. Oatmilk 52-oz., EARN 4X POINTS, $3.49 ea member price",
+      "parts": [
+        "Chobani Creamer 24-oz. Oatmilk 52-oz.",
+        "EARN 4X POINTS",
+        "$3.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380689",
+      "raw_label": "Mission Flour Tortillas, , $2.49 ea member price",
+      "parts": [
+        "Mission Flour Tortillas",
+        "",
+        "$2.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417133",
+      "raw_label": "Hormel Chili, , $2.49 ea member price",
+      "parts": [
+        "Hormel Chili",
+        "",
+        "$2.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999370490",
+      "raw_label": "Chobani Flip, Creations or Protein Greek Yogurt, EARN 4X POINTS, $0.99 ea member price",
+      "parts": [
+        "Chobani Flip",
+        "Creations or Protein Greek Yogurt",
+        "EARN 4X POINTS",
+        "$0.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380684",
+      "raw_label": "Dannon Oikos Triple Zero, Light + Fit or Too Good Greek Yogurt, , $3.99 ea member price",
+      "parts": [
+        "Dannon Oikos Triple Zero",
+        "Light + Fit or Too Good Greek Yogurt",
+        "",
+        "$3.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380691",
+      "raw_label": "Best Foods Squeeze Mayonnaise 11.5-oz. Kinder's Dry Rub 4.2 to 6.25-oz., , $3.49 ea member price",
+      "parts": [
+        "Best Foods Squeeze Mayonnaise 11.5-oz. Kinder's Dry Rub 4.2 to 6.25-oz.",
+        "",
+        "$3.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380736",
+      "raw_label": "Nabisco Tray Packs, EARN 4x POINTS, $4.99 ea member price",
+      "parts": [
+        "Nabisco Tray Packs",
+        "EARN 4x POINTS",
+        "$4.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380700",
+      "raw_label": "Starbucks Coffee or Refreshers, , $9.99 ea member price",
+      "parts": [
+        "Starbucks Coffee or Refreshers",
+        "",
+        "$9.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380709",
+      "raw_label": "Mission Tortilla Chips 9 to 11-oz. Nabisco Premium Crackers 9 to 17-oz. Ritz Sandwich Crackers 8-ct., , $2.49 ea member price",
+      "parts": [
+        "Mission Tortilla Chips 9 to 11-oz. Nabisco Premium Crackers 9 to 17-oz. Ritz Sandwich Crackers 8-ct.",
+        "",
+        "$2.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380748",
+      "raw_label": "belVita Breakfast Biscuits, , $2.99 ea member price",
+      "parts": [
+        "belVita Breakfast Biscuits",
+        "",
+        "$2.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380724",
+      "raw_label": "Ore-Ida Fries 26 to 32-oz. Hash Brown Potatoes 28 to 32-oz., , $3.99 ea member price",
+      "parts": [
+        "Ore-Ida Fries 26 to 32-oz. Hash Brown Potatoes 28 to 32-oz.",
+        "",
+        "$3.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380735",
+      "raw_label": "Stouffer's Family Size Meal 28 to 40-oz. Selected varieties. Macaroni & Cheese 40-oz., , $7.99 ea member price",
+      "parts": [
+        "Stouffer's Family Size Meal 28 to 40-oz. Selected varieties. Macaroni & Cheese 40-oz.",
+        "",
+        "$7.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417158",
+      "raw_label": "BodyArmor, , $4.49 ea member price",
+      "parts": [
+        "BodyArmor",
+        "",
+        "$4.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999390103",
+      "raw_label": "Capri Sun, , $3.49 ea member price",
+      "parts": [
+        "Capri Sun",
+        "",
+        "$3.49 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380729",
+      "raw_label": "Hershey King Size Candy, EARN 4X POINTS, $1.99 ea member price",
+      "parts": [
+        "Hershey King Size Candy",
+        "EARN 4X POINTS",
+        "$1.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999392458",
+      "raw_label": "Firestone Walker or Heineken 12-pack, 12-oz. Selected varieties. Michelob 15-pack, 12-oz., , $15.99 ea member price",
+      "parts": [
+        "Firestone Walker or Heineken 12-pack",
+        "12-oz. Selected varieties. Michelob 15-pack",
+        "12-oz.",
+        "",
+        "$15.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999380750",
+      "raw_label": "Charmin Bath Tissue 12-Mega Rolls. Bounty Paper Towels 6-Double Plus Rolls, EARN 4X POINTS, $13.99 ea member price",
+      "parts": [
+        "Charmin Bath Tissue 12-Mega Rolls. Bounty Paper Towels 6-Double Plus Rolls",
+        "EARN 4X POINTS",
+        "$13.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417148",
+      "raw_label": "Tide Liquid Laundry Detergent 117 to 132-oz. Pods 45, 57 or 76-ct., EARN 4X POINTS, $16.99 ea member price",
+      "parts": [
+        "Tide Liquid Laundry Detergent 117 to 132-oz. Pods 45",
+        "57 or 76-ct.",
+        "EARN 4X POINTS",
+        "$16.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999371050",
+      "raw_label": "Smirnoff, , $8.99 ea member price",
+      "parts": [
+        "Smirnoff",
+        "",
+        "$8.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417254",
+      "raw_label": "Yehuda or Manischewitz Passover Matzos, , $9.99 member price",
+      "parts": [
+        "Yehuda or Manischewitz Passover Matzos",
+        "",
+        "$9.99 member price"
+      ]
+    },
+    {
+      "item_id": "999382181",
+      "raw_label": "Manischewitz Matzo Ball Mix, , 2 for $5 member price",
+      "parts": [
+        "Manischewitz Matzo Ball Mix",
+        "",
+        "2 for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999365134",
+      "raw_label": "Signature SELECT® Carrots, , $1.99 ea member price",
+      "parts": [
+        "Signature SELECT® Carrots",
+        "",
+        "$1.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417269",
+      "raw_label": "Kedem Grape Juice, , $6.99 member price",
+      "parts": [
+        "Kedem Grape Juice",
+        "",
+        "$6.99 member price"
+      ]
+    },
+    {
+      "item_id": "999384797",
+      "raw_label": "Yehuda Gefilte Fish, , $6.99 member price",
+      "parts": [
+        "Yehuda Gefilte Fish",
+        "",
+        "$6.99 member price"
+      ]
+    },
+    {
+      "item_id": "999389317",
+      "raw_label": "Spaans Meringue Cookies, , $5.99",
+      "parts": [
+        "Spaans Meringue Cookies",
+        "",
+        "$5.99"
+      ]
+    },
+    {
+      "item_id": "999394372",
+      "raw_label": "Signature SELECT® Clover Honey Bear, , $4.99 member price",
+      "parts": [
+        "Signature SELECT® Clover Honey Bear",
+        "",
+        "$4.99 member price"
+      ]
+    },
+    {
+      "item_id": "999417329",
+      "raw_label": "Manischewitz, , $6.99 ea when you buy 6 or more Member Price",
+      "parts": [
+        "Manischewitz",
+        "",
+        "$6.99 ea when you buy 6 or more Member Price"
+      ]
+    },
+    {
+      "item_id": "999417352",
+      "raw_label": "Chicken Wings Bone-In or Boneless. Selected varieties. Available in the Deli. Smoked Sausage With Mango Habanero Sauce. Macaroni and Cheese Available hot in the Deli, , $5 lb member price",
+      "parts": [
+        "Chicken Wings Bone-In or Boneless. Selected varieties. Available in the Deli. Smoked Sausage With Mango Habanero Sauce. Macaroni and Cheese Available hot in the Deli",
+        "",
+        "$5 lb member price"
+      ]
+    },
+    {
+      "item_id": "999382296",
+      "raw_label": "Open Nature® Assorted Lamb Shoulder Chops, , $5 lb member price",
+      "parts": [
+        "Open Nature® Assorted Lamb Shoulder Chops",
+        "",
+        "$5 lb member price"
+      ]
+    },
+    {
+      "item_id": "999389405",
+      "raw_label": "Wild Alaskan Pollock 4-Piece. Fresh Sushi, , $5 ea member price",
+      "parts": [
+        "Wild Alaskan Pollock 4-Piece. Fresh Sushi",
+        "",
+        "$5 ea member price"
+      ]
+    },
+    {
+      "item_id": "999394178",
+      "raw_label": "Foster Farms Frozen Chicken, , $5 ea member price",
+      "parts": [
+        "Foster Farms Frozen Chicken",
+        "",
+        "$5 ea member price"
+      ]
+    },
+    {
+      "item_id": "999379418",
+      "raw_label": "Hillshire Farm Lunchmeat 7 to 9-oz. Sausage 12 to 14-oz., , $5 ea member price",
+      "parts": [
+        "Hillshire Farm Lunchmeat 7 to 9-oz. Sausage 12 to 14-oz.",
+        "",
+        "$5 ea member price"
+      ]
+    },
+    {
+      "item_id": "999385959",
+      "raw_label": "Green Asparagus, , 2 lbs for $5 member price",
+      "parts": [
+        "Green Asparagus",
+        "",
+        "2 lbs for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999417364",
+      "raw_label": "Red Seedless Grapes, , 3 lbs for $5 member price",
+      "parts": [
+        "Red Seedless Grapes",
+        "",
+        "3 lbs for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999367876",
+      "raw_label": "Waterfront Bistro® Jumbo Raw Shrimp 21 to 25-ct. Large Cooked Shrimp 31 to 40-ct., , $5 lb member price",
+      "parts": [
+        "Waterfront Bistro® Jumbo Raw Shrimp 21 to 25-ct. Large Cooked Shrimp 31 to 40-ct.",
+        "",
+        "$5 lb member price"
+      ]
+    },
+    {
+      "item_id": "999417388",
+      "raw_label": "Jumbo Cookies, , $5 ea member price",
+      "parts": [
+        "Jumbo Cookies",
+        "",
+        "$5 ea member price"
+      ]
+    },
+    {
+      "item_id": "999382406",
+      "raw_label": "Artesano Bread 20-oz. Entenmann's Little Bites 8.25 to 16.5-oz., , 2 for $5 member price",
+      "parts": [
+        "Artesano Bread 20-oz. Entenmann's Little Bites 8.25 to 16.5-oz.",
+        "",
+        "2 for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999368664",
+      "raw_label": "Nestlé Drumstick, , $5 ea member price",
+      "parts": [
+        "Nestlé Drumstick",
+        "",
+        "$5 ea member price"
+      ]
+    },
+    {
+      "item_id": "999385084",
+      "raw_label": "Pringles Chips, , 3 for $5 member price",
+      "parts": [
+        "Pringles Chips",
+        "",
+        "3 for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999417424",
+      "raw_label": "Ken's Salad Dressing 16-oz. Sweet Baby Ray's Barbecue Sauce 16 to 28-oz, , 2 for $5 member price",
+      "parts": [
+        "Ken's Salad Dressing 16-oz. Sweet Baby Ray's Barbecue Sauce 16 to 28-oz",
+        "",
+        "2 for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999417421",
+      "raw_label": "Tide Liquid Laundry Detergent 32 to 34-oz. Gain Laundry Detergent 46-oz. Liquid or 16-ct. Flings. Selected varieties. Bounty Essentials Paper Towel 2-Triple Rolls., , $5 ea member price",
+      "parts": [
+        "Tide Liquid Laundry Detergent 32 to 34-oz. Gain Laundry Detergent 46-oz. Liquid or 16-ct. Flings. Selected varieties. Bounty Essentials Paper Towel 2-Triple Rolls.",
+        "",
+        "$5 ea member price"
+      ]
+    },
+    {
+      "item_id": "999393350",
+      "raw_label": "Signature SELECT® Apple Juice or Cranberry Juice Cocktail, , 3 for $5 member price",
+      "parts": [
+        "Signature SELECT® Apple Juice or Cranberry Juice Cocktail",
+        "",
+        "3 for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999382239",
+      "raw_label": "Soonhari Soju, , $5 ea member price",
+      "parts": [
+        "Soonhari Soju",
+        "",
+        "$5 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417442",
+      "raw_label": "Mondrian Roses Bouquet, , $5 ea member price",
+      "parts": [
+        "Mondrian Roses Bouquet",
+        "",
+        "$5 ea member price"
+      ]
+    },
+    {
+      "item_id": "999375718",
+      "raw_label": "Coke products, Buy any $25 participating products SAVE $5,",
+      "parts": [
+        "Coke products",
+        "Buy any $25 participating products SAVE $5",
+        ""
+      ]
+    },
+    {
+      "item_id": "999375748",
+      "raw_label": "Coca-Cola, BUY 2 GET 1 FREE When you Buy 3 Member Price,",
+      "parts": [
+        "Coca-Cola",
+        "BUY 2 GET 1 FREE When you Buy 3 Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999374952",
+      "raw_label": "vitaminwater 6-pack, 16.9-oz. Topo Chico Sabores 8-pack, 12-oz., , $6.99 member price",
+      "parts": [
+        "vitaminwater 6-pack",
+        "16.9-oz. Topo Chico Sabores 8-pack",
+        "12-oz.",
+        "",
+        "$6.99 member price"
+      ]
+    },
+    {
+      "item_id": "999375719",
+      "raw_label": "Powerade 8-pack, 20-oz. smartwater 6-pack, 16.9-oz., , $5.99 member price",
+      "parts": [
+        "Powerade 8-pack",
+        "20-oz. smartwater 6-pack",
+        "16.9-oz.",
+        "",
+        "$5.99 member price"
+      ]
+    },
+    {
+      "item_id": "999375726",
+      "raw_label": "Simply Orange Juice, , $8.99",
+      "parts": [
+        "Simply Orange Juice",
+        "",
+        "$8.99"
+      ]
+    },
+    {
+      "item_id": "999375799",
+      "raw_label": "Mission Foods, ,",
+      "parts": [
+        "Mission Foods",
+        "",
+        ""
+      ]
+    },
+    {
+      "item_id": "999375758",
+      "raw_label": "Herdez Salsa, , $2.99 member price",
+      "parts": [
+        "Herdez Salsa",
+        "",
+        "$2.99 member price"
+      ]
+    },
+    {
+      "item_id": "999375771",
+      "raw_label": "Hormel Chili with Beans, , $2.99",
+      "parts": [
+        "Hormel Chili with Beans",
+        "",
+        "$2.99"
+      ]
+    },
+    {
+      "item_id": "999375752",
+      "raw_label": "Planters Peanuts, , 2 for $7 member price",
+      "parts": [
+        "Planters Peanuts",
+        "",
+        "2 for $7 member price"
+      ]
+    },
+    {
+      "item_id": "999375760",
+      "raw_label": "Hormel Pepperoni Pillow Pack, , $4.99 member price",
+      "parts": [
+        "Hormel Pepperoni Pillow Pack",
+        "",
+        "$4.99 member price"
+      ]
+    },
+    {
+      "item_id": "999375757",
+      "raw_label": "Magnum Ice Cream Bars 3-ct. Yasso Novelties 4-ct., , $5.99 member price",
+      "parts": [
+        "Magnum Ice Cream Bars 3-ct. Yasso Novelties 4-ct.",
+        "",
+        "$5.99 member price"
+      ]
+    },
+    {
+      "item_id": "999417813",
+      "raw_label": "Lifeway Kefir Smoothie, EARN 2x POINTS, $3.99 member price",
+      "parts": [
+        "Lifeway Kefir Smoothie",
+        "EARN 2x POINTS",
+        "$3.99 member price"
+      ]
+    },
+    {
+      "item_id": "999388943",
+      "raw_label": "Nut Pods Creamer, , $4.49 member price",
+      "parts": [
+        "Nut Pods Creamer",
+        "",
+        "$4.49 member price"
+      ]
+    },
+    {
+      "item_id": "999417821",
+      "raw_label": "Tillamook Cream Cheese, , $2.99 ea member price",
+      "parts": [
+        "Tillamook Cream Cheese",
+        "",
+        "$2.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999381256",
+      "raw_label": "Horizon Organic Creamer, , $4.99 member price",
+      "parts": [
+        "Horizon Organic Creamer",
+        "",
+        "$4.99 member price"
+      ]
+    },
+    {
+      "item_id": "999391399",
+      "raw_label": "Amish Country Roll Butter, , $10.99 member price",
+      "parts": [
+        "Amish Country Roll Butter",
+        "",
+        "$10.99 member price"
+      ]
+    },
+    {
+      "item_id": "999417828",
+      "raw_label": "The Laughing Cow Cheese Wedges, , $3.99 ea member price",
+      "parts": [
+        "The Laughing Cow Cheese Wedges",
+        "",
+        "$3.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999365447",
+      "raw_label": "BelGioioso Sandwich Stack Cheese, , $5.99 ea member price",
+      "parts": [
+        "BelGioioso Sandwich Stack Cheese",
+        "",
+        "$5.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417831",
+      "raw_label": "Rockit Apples, EARN 2X POINTS, $6.99 ea member price",
+      "parts": [
+        "Rockit Apples",
+        "EARN 2X POINTS",
+        "$6.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999394895",
+      "raw_label": "Sumo Citrus, EARN 2x POINTS, $5.99 ea member price",
+      "parts": [
+        "Sumo Citrus",
+        "EARN 2x POINTS",
+        "$5.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417835",
+      "raw_label": "Health-Ade Kombucha, Earn 2x POINTS, 2 for $7 member price",
+      "parts": [
+        "Health-Ade Kombucha",
+        "Earn 2x POINTS",
+        "2 for $7 member price"
+      ]
+    },
+    {
+      "item_id": "999417844",
+      "raw_label": "POM Wonderful Tea, , 2 for $4 member price",
+      "parts": [
+        "POM Wonderful Tea",
+        "",
+        "2 for $4 member price"
+      ]
+    },
+    {
+      "item_id": "999417859",
+      "raw_label": "Wonderful Pistachios, EARN 2X POINTS, $5.99 ea member price",
+      "parts": [
+        "Wonderful Pistachios",
+        "EARN 2X POINTS",
+        "$5.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417867",
+      "raw_label": "Wonderful Seedless Lemons, EARN 2X POINTS, $3.99 ea member price",
+      "parts": [
+        "Wonderful Seedless Lemons",
+        "EARN 2X POINTS",
+        "$3.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417866",
+      "raw_label": "Fresh Express Family Size Iceberg Shreds, , $2.99 ea member price",
+      "parts": [
+        "Fresh Express Family Size Iceberg Shreds",
+        "",
+        "$2.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417885",
+      "raw_label": "Rao's Pasta Sauce, EARN 2X POINTS, $7.99 member price",
+      "parts": [
+        "Rao's Pasta Sauce",
+        "EARN 2X POINTS",
+        "$7.99 member price"
+      ]
+    },
+    {
+      "item_id": "999417887",
+      "raw_label": "Dennison's Chili with Beans 15-oz. Hunt's Tomatoes 14.5-oz., EARN 2X POINTS, 3 for $5 member price",
+      "parts": [
+        "Dennison's Chili with Beans 15-oz. Hunt's Tomatoes 14.5-oz.",
+        "EARN 2X POINTS",
+        "3 for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999393995",
+      "raw_label": "Amy's Entrée, , $5.99 member price",
+      "parts": [
+        "Amy's Entrée",
+        "",
+        "$5.99 member price"
+      ]
+    },
+    {
+      "item_id": "999417905",
+      "raw_label": "FIJI Artesian Water, EARN 2X POINTS, $5.99 member price",
+      "parts": [
+        "FIJI Artesian Water",
+        "EARN 2X POINTS",
+        "$5.99 member price"
+      ]
+    },
+    {
+      "item_id": "999417899",
+      "raw_label": "Heinz Tomato Ketchup, , $4.99 member price",
+      "parts": [
+        "Heinz Tomato Ketchup",
+        "",
+        "$4.99 member price"
+      ]
+    },
+    {
+      "item_id": "999417900",
+      "raw_label": "Calbee Harvest Snaps, , 2 for $4 member price",
+      "parts": [
+        "Calbee Harvest Snaps",
+        "",
+        "2 for $4 member price"
+      ]
+    },
+    {
+      "item_id": "999417906",
+      "raw_label": "Yakult Probiotic Drink, , $2.99 ea member price",
+      "parts": [
+        "Yakult Probiotic Drink",
+        "",
+        "$2.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417908",
+      "raw_label": "Lakanto Sweetener, , $5.99 ea member price",
+      "parts": [
+        "Lakanto Sweetener",
+        "",
+        "$5.99 ea member price"
+      ]
+    },
+    {
+      "item_id": "999417949",
+      "raw_label": "Lindt Gold Bunny, , $5.99 member price",
+      "parts": [
+        "Lindt Gold Bunny",
+        "",
+        "$5.99 member price"
+      ]
+    },
+    {
+      "item_id": "999365410",
+      "raw_label": "Russell Stover Chocolate Easter Egg, , 2 for $3 member price",
+      "parts": [
+        "Russell Stover Chocolate Easter Egg",
+        "",
+        "2 for $3 member price"
+      ]
+    },
+    {
+      "item_id": "999394803",
+      "raw_label": "Ferrero Easter Egg, , 2 for $9 member price",
+      "parts": [
+        "Ferrero Easter Egg",
+        "",
+        "2 for $9 member price"
+      ]
+    },
+    {
+      "item_id": "999379058",
+      "raw_label": "Spring Lindt Truffles, , $5.99 member price",
+      "parts": [
+        "Spring Lindt Truffles",
+        "",
+        "$5.99 member price"
+      ]
+    },
+    {
+      "item_id": "999417967",
+      "raw_label": "Brach's Jelly Beans, , 2 for $5 member price",
+      "parts": [
+        "Brach's Jelly Beans",
+        "",
+        "2 for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999390930",
+      "raw_label": "Hershey's Easter Candy, , $5.49 member price",
+      "parts": [
+        "Hershey's Easter Candy",
+        "",
+        "$5.49 member price"
+      ]
+    },
+    {
+      "item_id": "999417957",
+      "raw_label": "Hershey Share Size Candy, EARN 4X POINTS, $6.99 member price",
+      "parts": [
+        "Hershey Share Size Candy",
+        "EARN 4X POINTS",
+        "$6.99 member price"
+      ]
+    },
+    {
+      "item_id": "999380047",
+      "raw_label": "Easter Egg Dye Kit, 25% OFF Member Price,",
+      "parts": [
+        "Easter Egg Dye Kit",
+        "25% OFF Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999374537",
+      "raw_label": "Easter Grass or Fillable Eggs, 25% OFF Member Price,",
+      "parts": [
+        "Easter Grass or Fillable Eggs",
+        "25% OFF Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999417963",
+      "raw_label": "Peeps Easter Toy, 25% OFF Member Price,",
+      "parts": [
+        "Peeps Easter Toy",
+        "25% OFF Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999417975",
+      "raw_label": "Easter Plush, 25% OFF Member Price,",
+      "parts": [
+        "Easter Plush",
+        "25% OFF Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999392570",
+      "raw_label": "Easter Party or Home Décor, 33% OFF Member Price,",
+      "parts": [
+        "Easter Party or Home Décor",
+        "33% OFF Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999417977",
+      "raw_label": "Easter Paper Party Goods, , 4 for $5 member price",
+      "parts": [
+        "Easter Paper Party Goods",
+        "",
+        "4 for $5 member price"
+      ]
+    },
+    {
+      "item_id": "999368250",
+      "raw_label": "Easter Peeps, , 2 for $3 member price",
+      "parts": [
+        "Easter Peeps",
+        "",
+        "2 for $3 member price"
+      ]
+    },
+    {
+      "item_id": "999376995",
+      "raw_label": "Ferrara Easter Variety Candy, , $9.99 member price",
+      "parts": [
+        "Ferrara Easter Variety Candy",
+        "",
+        "$9.99 member price"
+      ]
+    },
+    {
+      "item_id": "999392465",
+      "raw_label": "Mars Easter Variety Candy, , $10.99 member price",
+      "parts": [
+        "Mars Easter Variety Candy",
+        "",
+        "$10.99 member price"
+      ]
+    },
+    {
+      "item_id": "999381413",
+      "raw_label": "Gerber Baby Food, , 2 for $4 member price",
+      "parts": [
+        "Gerber Baby Food",
+        "",
+        "2 for $4 member price"
+      ]
+    },
+    {
+      "item_id": "999381159",
+      "raw_label": "Peter Rabbit Organic Pouch, , 2 for $4 member price",
+      "parts": [
+        "Peter Rabbit Organic Pouch",
+        "",
+        "2 for $4 member price"
+      ]
+    },
+    {
+      "item_id": "999418010",
+      "raw_label": "Signature Care® Electrolyte Solution, , $4.99 member price",
+      "parts": [
+        "Signature Care® Electrolyte Solution",
+        "",
+        "$4.99 member price"
+      ]
+    },
+    {
+      "item_id": "999417988",
+      "raw_label": "Signature SELECT® Baby Wipes, Earn 2x POINTS, $5.99 member price",
+      "parts": [
+        "Signature SELECT® Baby Wipes",
+        "Earn 2x POINTS",
+        "$5.99 member price"
+      ]
+    },
+    {
+      "item_id": "999389568",
+      "raw_label": "Gerber Melts or Teethers, , $3.99 member price",
+      "parts": [
+        "Gerber Melts or Teethers",
+        "",
+        "$3.99 member price"
+      ]
+    },
+    {
+      "item_id": "999417994",
+      "raw_label": "Pediasure Shakes, , $13.99 member price",
+      "parts": [
+        "Pediasure Shakes",
+        "",
+        "$13.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418008",
+      "raw_label": "Huggies Little Movers or Snugglers Jumbo Pack, , $11.99 member price",
+      "parts": [
+        "Huggies Little Movers or Snugglers Jumbo Pack",
+        "",
+        "$11.99 member price"
+      ]
+    },
+    {
+      "item_id": "999382062",
+      "raw_label": "Pampers Swaddlers Super Pack, , $32.99 member price",
+      "parts": [
+        "Pampers Swaddlers Super Pack",
+        "",
+        "$32.99 member price"
+      ]
+    },
+    {
+      "item_id": "999385402",
+      "raw_label": "Sensodyne Toothpaste, , $7.99 member price",
+      "parts": [
+        "Sensodyne Toothpaste",
+        "",
+        "$7.99 member price"
+      ]
+    },
+    {
+      "item_id": "999381745",
+      "raw_label": "Listerine Mouthwash, , $8.99 member price",
+      "parts": [
+        "Listerine Mouthwash",
+        "",
+        "$8.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418036",
+      "raw_label": "Sudafed PE, , $8.99 member price",
+      "parts": [
+        "Sudafed PE",
+        "",
+        "$8.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418022",
+      "raw_label": "Claritin Allergy Relief, , $12.99 member price",
+      "parts": [
+        "Claritin Allergy Relief",
+        "",
+        "$12.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418021",
+      "raw_label": "Nature's Truth or Signature SELECT® Vitamins, BUY 1 GET 1 FREE Member Price When you Buy 2,",
+      "parts": [
+        "Nature's Truth or Signature SELECT® Vitamins",
+        "BUY 1 GET 1 FREE Member Price When you Buy 2",
+        ""
+      ]
+    },
+    {
+      "item_id": "999365642",
+      "raw_label": "GoMacro Bars, , $10.99 member price",
+      "parts": [
+        "GoMacro Bars",
+        "",
+        "$10.99 member price"
+      ]
+    },
+    {
+      "item_id": "999384962",
+      "raw_label": "OWYN Shakes, , $8.99 member price",
+      "parts": [
+        "OWYN Shakes",
+        "",
+        "$8.99 member price"
+      ]
+    },
+    {
+      "item_id": "999373817",
+      "raw_label": "Premier Protein Indulgence Shakes, , $11.99 member price",
+      "parts": [
+        "Premier Protein Indulgence Shakes",
+        "",
+        "$11.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418029",
+      "raw_label": "Glucerna Original Shakes, $5 OFF When you Buy 2 Member Price,",
+      "parts": [
+        "Glucerna Original Shakes",
+        "$5 OFF When you Buy 2 Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999418034",
+      "raw_label": "Premier Protein Powder, , $27.99 member price",
+      "parts": [
+        "Premier Protein Powder",
+        "",
+        "$27.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418062",
+      "raw_label": "Muscle Milk Genuine, , $8.99 ea",
+      "parts": [
+        "Muscle Milk Genuine",
+        "",
+        "$8.99 ea"
+      ]
+    },
+    {
+      "item_id": "999418035",
+      "raw_label": "Pure Protein Bars, , $5.99 ea",
+      "parts": [
+        "Pure Protein Bars",
+        "",
+        "$5.99 ea"
+      ]
+    },
+    {
+      "item_id": "999418082",
+      "raw_label": "Pharmacy, ,",
+      "parts": [
+        "Pharmacy",
+        "",
+        ""
+      ]
+    },
+    {
+      "item_id": "999418113",
+      "raw_label": "Safeway Stock up, ,",
+      "parts": [
+        "Safeway Stock up",
+        "",
+        ""
+      ]
+    },
+    {
+      "item_id": "999378550",
+      "raw_label": "Garnier Fructis Shampoo or Conditioner, EARN 4X POINTS, $5.99 member price",
+      "parts": [
+        "Garnier Fructis Shampoo or Conditioner",
+        "EARN 4X POINTS",
+        "$5.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418104",
+      "raw_label": "Pantene or Head & Shoulders Shampoo or Conditioner, , $7.99 member price",
+      "parts": [
+        "Pantene or Head & Shoulders Shampoo or Conditioner",
+        "",
+        "$7.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418127",
+      "raw_label": "L' Oréal EverPure Shampoo or Conditioner, EARN 4X POINTS, $9.99 member price",
+      "parts": [
+        "L' Oréal EverPure Shampoo or Conditioner",
+        "EARN 4X POINTS",
+        "$9.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418105",
+      "raw_label": "Signature SELECT® Food Storage, , 2 for $7 member price",
+      "parts": [
+        "Signature SELECT® Food Storage",
+        "",
+        "2 for $7 member price"
+      ]
+    },
+    {
+      "item_id": "999418107",
+      "raw_label": "AXE Hair Care or Deodorant, EARN 4x POINTS, $6.99 member price",
+      "parts": [
+        "AXE Hair Care or Deodorant",
+        "EARN 4x POINTS",
+        "$6.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418116",
+      "raw_label": "TRESemmé Shampoo or Conditioner, EARN 4X POINTS, $6.99 member price",
+      "parts": [
+        "TRESemmé Shampoo or Conditioner",
+        "EARN 4X POINTS",
+        "$6.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418166",
+      "raw_label": "Aussie Ultra Wonder Hair Care or Old Spice Hair Styler, EARN 4X POINTS, $9.99 member price",
+      "parts": [
+        "Aussie Ultra Wonder Hair Care or Old Spice Hair Styler",
+        "EARN 4X POINTS",
+        "$9.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418114",
+      "raw_label": "Fabuloso Multi-Purpose Cleaner, EARN 4x POINTS, $7.99 ea",
+      "parts": [
+        "Fabuloso Multi-Purpose Cleaner",
+        "EARN 4x POINTS",
+        "$7.99 ea"
+      ]
+    },
+    {
+      "item_id": "999418167",
+      "raw_label": "Dove Shampoo or Conditioner, EARN 4X POINTS, $6.99 member price",
+      "parts": [
+        "Dove Shampoo or Conditioner",
+        "EARN 4X POINTS",
+        "$6.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418162",
+      "raw_label": "Dove Men's Deodorant, EARN 4X POINTS, $8.99 member price",
+      "parts": [
+        "Dove Men's Deodorant",
+        "EARN 4X POINTS",
+        "$8.99 member price"
+      ]
+    },
+    {
+      "item_id": "999365740",
+      "raw_label": "Dove Shampoo or Conditioner Pumps, , $12.99 member price",
+      "parts": [
+        "Dove Shampoo or Conditioner Pumps",
+        "",
+        "$12.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418119",
+      "raw_label": "Mr. Clean Shower & Tub Starter Kit, , $9.99 ea",
+      "parts": [
+        "Mr. Clean Shower & Tub Starter Kit",
+        "",
+        "$9.99 ea"
+      ]
+    },
+    {
+      "item_id": "999389109",
+      "raw_label": "Crest Toothpaste or Scope Mouthwash 3.3 to 5.1-oz. or 33.8-oz., EARN 4X POINTS, $6.99 member price",
+      "parts": [
+        "Crest Toothpaste or Scope Mouthwash 3.3 to 5.1-oz. or 33.8-oz.",
+        "EARN 4X POINTS",
+        "$6.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418148",
+      "raw_label": "Old Spice Body Wash, EARN 4X POINTS, $7.99 member price",
+      "parts": [
+        "Old Spice Body Wash",
+        "EARN 4X POINTS",
+        "$7.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418196",
+      "raw_label": "Secret or Old Spice Deodorant, , $7.99 member price",
+      "parts": [
+        "Secret or Old Spice Deodorant",
+        "",
+        "$7.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418202",
+      "raw_label": "Clorox Disinfecting Wipes, , $14.99 ea",
+      "parts": [
+        "Clorox Disinfecting Wipes",
+        "",
+        "$14.99 ea"
+      ]
+    },
+    {
+      "item_id": "999368146",
+      "raw_label": "Always Ultra Thin or Maxi Pads, EARN 4X POINTS, $10.99 member price",
+      "parts": [
+        "Always Ultra Thin or Maxi Pads",
+        "EARN 4X POINTS",
+        "$10.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418191",
+      "raw_label": "Venus Comfort Glide White Tea, , $15.99 member price",
+      "parts": [
+        "Venus Comfort Glide White Tea",
+        "",
+        "$15.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418187",
+      "raw_label": "Harry's Cartridge Refills, EARN 4x POINTS, $10.99 member price",
+      "parts": [
+        "Harry's Cartridge Refills",
+        "EARN 4x POINTS",
+        "$10.99 member price"
+      ]
+    },
+    {
+      "item_id": "999371614",
+      "raw_label": "Signature SELECT® Stacked Chairs, , $39.99 member price",
+      "parts": [
+        "Signature SELECT® Stacked Chairs",
+        "",
+        "$39.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418205",
+      "raw_label": "Softsoap Liquid Hand Soap, EARN 4x POINTS, 2 / $3 when you buy 2",
+      "parts": [
+        "Softsoap Liquid Hand Soap",
+        "EARN 4x POINTS",
+        "2 / $3 when you buy 2"
+      ]
+    },
+    {
+      "item_id": "999418249",
+      "raw_label": "Irish Spring or Softsoap Body Wash, , $4.99 ea",
+      "parts": [
+        "Irish Spring or Softsoap Body Wash",
+        "",
+        "$4.99 ea"
+      ]
+    },
+    {
+      "item_id": "999418231",
+      "raw_label": "Dove Bar Soap, , $9.99 ea",
+      "parts": [
+        "Dove Bar Soap",
+        "",
+        "$9.99 ea"
+      ]
+    },
+    {
+      "item_id": "999384946",
+      "raw_label": "Signature SELECT® Patio Umbrella, , $49.99 member price",
+      "parts": [
+        "Signature SELECT® Patio Umbrella",
+        "",
+        "$49.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418248",
+      "raw_label": "Edge or Skintimate Shave Gel, EARN 4X POINTS, $3.99 ea when you buy 2",
+      "parts": [
+        "Edge or Skintimate Shave Gel",
+        "EARN 4X POINTS",
+        "$3.99 ea when you buy 2"
+      ]
+    },
+    {
+      "item_id": "999418264",
+      "raw_label": "Speed Stick Deodorant Twin Pack, EARN 4X POINTS, $3.99 ea",
+      "parts": [
+        "Speed Stick Deodorant Twin Pack",
+        "EARN 4X POINTS",
+        "$3.99 ea"
+      ]
+    },
+    {
+      "item_id": "999418265",
+      "raw_label": "Schick Xtreme Disposable Razors, EARN 4x POINTS, $5.99 ea",
+      "parts": [
+        "Schick Xtreme Disposable Razors",
+        "EARN 4x POINTS",
+        "$5.99 ea"
+      ]
+    },
+    {
+      "item_id": "999375927",
+      "raw_label": "Signature SELECT® 5-Piece Patio Set, 25% OFF Member Price,",
+      "parts": [
+        "Signature SELECT® 5-Piece Patio Set",
+        "25% OFF Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999367508",
+      "raw_label": "Built Bars, EARN 4X POINTS, $8.99 member price",
+      "parts": [
+        "Built Bars",
+        "EARN 4X POINTS",
+        "$8.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418266",
+      "raw_label": "Gatorade Protein Bars, EARN 4x POINTS, $12.99 member price",
+      "parts": [
+        "Gatorade Protein Bars",
+        "EARN 4x POINTS",
+        "$12.99 member price"
+      ]
+    },
+    {
+      "item_id": "999381973",
+      "raw_label": "CLIF Bars, , $6.99 member price",
+      "parts": [
+        "CLIF Bars",
+        "",
+        "$6.99 member price"
+      ]
+    },
+    {
+      "item_id": "999367954",
+      "raw_label": "Charbroil 4-Burner Pro Gas Grill, 25% OFF Member Price,",
+      "parts": [
+        "Charbroil 4-Burner Pro Gas Grill",
+        "25% OFF Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999368677",
+      "raw_label": "Oikos Shakes, EARN 4X POINTS, $9.99 member price",
+      "parts": [
+        "Oikos Shakes",
+        "EARN 4X POINTS",
+        "$9.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418277",
+      "raw_label": "Bloom Greens or Superfoods Powder, EARN 4X POINTS, $29.99 member price",
+      "parts": [
+        "Bloom Greens or Superfoods Powder",
+        "EARN 4X POINTS",
+        "$29.99 member price"
+      ]
+    },
+    {
+      "item_id": "999385099",
+      "raw_label": "Barebells Bars, , $8.99 member price",
+      "parts": [
+        "Barebells Bars",
+        "",
+        "$8.99 member price"
+      ]
+    },
+    {
+      "item_id": "999418352",
+      "raw_label": "Copper Ring Fire Pit, 25% OFF Member Price,",
+      "parts": [
+        "Copper Ring Fire Pit",
+        "25% OFF Member Price",
+        ""
+      ]
+    },
+    {
+      "item_id": "999418353",
+      "raw_label": "Sincerely Health, ,",
+      "parts": [
+        "Sincerely Health",
+        "",
+        ""
+      ]
+    },
+    {
+      "item_id": "999417781",
+      "raw_label": "Fresh Pass, 5% off,",
+      "parts": [
+        "Fresh Pass",
+        "5% off",
+        ""
+      ]
+    }
+  ]
+}
